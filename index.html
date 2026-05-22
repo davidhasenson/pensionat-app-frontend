@@ -4,10 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Pensionat</title>
 </head>
 
 <body>
+    <h1>Välkommen till Pensionat</h1>
+
+    <p>Välkommen till vårt pensionat! Här hittar du information om våra tjänster och hur du kan kontakta oss.</p>
+
+
+    <section>
+        <h2>Skapa kund</h2>
+        <label for="firstName">Förnamn</label>
+        <input id="firstName" placeholder="Förnamn">
+        <br>
+        <label for="lastName">Efternamn</label>
+        <input id="lastName" placeholder="Efternamn">
+        <br>
+        <label for="email">email</label>
+        <input id="email" placeholder="email">
+        <br>
+        <label for="phone">Telefon</label>
+        <input id="phone" placeholder="Telefon">
+        <button onclick="createCustomer()">Skapa kund</button>
+
+
+    </section>
+
+    <section>
+        <h2>Rum</h2>
+        <button onClick="loadRooms()">Visa rum</button>
+        <ul id="rooms"></ul>
+    </section>
+
+    <p id="message"></p>
+
+
+<script src="script.js"></script>
 
 </body>
 
