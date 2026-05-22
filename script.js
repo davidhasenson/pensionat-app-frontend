@@ -25,3 +25,29 @@ async function createCustomer() {
 function showMessage(text) {
     document.getElementById("message").textContent = text;
 }
+
+async function loadRooms() {
+    const response = await fetch(`${API_URL}/rooms`);
+    const rooms = await response.json();
+    const list = document.getElementById("rooms");
+
+    rooms.forEach(room => {
+        const li = document.createElement("li");
+    
+        li.textContent = `Rum ${room.roomNumber} - 
+        ${room.beds} sängar -
+        ${formatBedType(room.bedType)} - 
+        ${room.pricePerNight} kr/natt`;
+
+        list.appendChild(li);
+    });
+}
+
+function formatBedType(bedType) {
+    switch(bedType) {
+        case "SINGLE_BED": return "Enkelrum";
+        case "DOUBLE_BED": return "Dubbelrum";
+        case "TWIN_ROOM": return "Tvåbäddsrum";
+        default: return bedType;
+    }
+}
