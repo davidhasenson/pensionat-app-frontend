@@ -41,14 +41,33 @@
         <button onClick="loadRooms()">Visa rum</button>
         <ul id="rooms"></ul>
     </section>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2>Skapa bokning</h2>
+
+            <label class="form-label">Kund</label>
+            <select id="customerId" class="form-select mb-2"></select>
+
+            <label class="form-label">Rum</label>
+            <select id="roomId" class="form-select mb-2"></select>
+
+            <label class="form-label">Startdatum</label>
+            <input id="startDate" type="date" class="form-control mb-2">
+
+            <label class="form-label">Slutdatum</label>
+            <input id="endDate" type="date" class="form-control mb-3">
+        
+            <button onclick="loadCustomersForBooking(); loadRoomsForBooking();">
+            Ladda kunder och rum
+            </button>
+            <br><br>
+            <button class="btn btn-success" onclick="createBooking()">Skapa bokning
+            </button>
+        </div>
+    </div>
 
     <p id="message"></p>
-
-
-
-
-
-
 
     <script src="script.js"></script>
 </body>
