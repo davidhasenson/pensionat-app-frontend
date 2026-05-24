@@ -17,6 +17,18 @@ async function createCustomer() {
         return;
     }
 
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+        showMessage("Fel: E-postadressen är ogiltig. Kontrollera att du har med '@' och en punkt (t.ex. namn@test.com).");
+        return;
+    }
+
+    const phonePattern = /^[0-9+\s-]+$/;
+    if (!phonePattern.test(phone)) {
+        showMessage("Fel: Telefonnumret får bara innehålla siffror, mellanslag, eller tecken som + och -.");
+        return;
+    }
+
     try {
         const response = await fetch(`${API_URL}/customers`, {
             method: 'POST',
@@ -53,8 +65,6 @@ async function createCustomer() {
         showMessage("Kunde inte ansluta till servern. Försök igen senare.");
     }
 }
-
-
 
 function showMessage(text) {
     document.getElementById("message").innerHTML = text;
