@@ -5,43 +5,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pensionat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 </head>
 
 <body>
-    <h1>Välkommen till Pensionat</h1>
 
-    <p>Välkommen till vårt pensionat! Här hittar du information om våra tjänster.</p>
+    <div class="container my-5">
+
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary">Välkommen till Pensionat</h1>
+            <p class="lead text-muted">Här hittar du information om våra tjänster och hanterar dina bokningar.</p>
+        </div>
+
+        <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+
+            <div class="card-header bg-primary text-white py-3">
+                <h2 class="h4 mb-0 text-center">Skapa ny kund</h2>
+            </div>
+
+            <div class="card-body p-4">
+
+                <div class="mb-3">
+                    <label for="firstName" class="form-label fw-semibold">Förnamn</label>
+                    <input type="text" id="firstName" class="form-control" placeholder="Förnamn">
+                </div>
+
+                <div class="mb-3">
+                    <label for="lastName" class="form-label fw-semibold">Efternamn</label>
+                    <input type="text" id="lastName" class="form-control" placeholder="Efternamn">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold">E-postadress</label>
+                    <input type="email" id="email" class="form-control" placeholder="E-postadress">
+                </div>
+
+                <div class="mb-4">
+                    <label for="phone" class="form-label fw-semibold">Telefonnummer</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="Telefonnummer">
+                </div>
+
+                <button onclick="createCustomer()" class="btn btn-primary w-100 py-2 fw-bold">
+                    Skapa kund
+                </button>
+
+                <div id="message" class="mt-3 text-center text-danger fw-medium"></div>
+
+            </div>
+        </div>
+
+        <div class="card shadow-sm mx-auto mt-4" style="max-width: 500px;">
+
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                <h2 class="h5 mb-0">Rumöversikt</h2>
+            </div>
+
+            <div class="card-body p-0">
+                <ul id="rooms" class="list-group list-group-flush text-center">
+                    <li class="list-group-item text-muted py-3">Klicka på "Visa rum" för att hämta lista...</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
 
 
-    <section>
-        <h2>Skapa kund</h2>
-        <label for="firstName">Förnamn</label>
-        <br>
-        <input id="firstName" placeholder="Förnamn">
-        <br>
-        <label for="lastName">Efternamn</label>
-        <br>
-        <input id="lastName" placeholder="Efternamn">
-        <br>
-        <label for="email">email</label>
-        <br>
-        <input id="email" placeholder="email">
-        <br>
-        <label for="phone">Telefon</label>
-        <br>
-        <input id="phone" placeholder="Telefon">
-        <br>
-        <button onclick="createCustomer()">Skapa kund</button>
 
-
-    </section>
-    
-    <section>
-        <h2>Rum</h2>
-        <button onClick="loadRooms()">Visa rum</button>
-        <ul id="rooms"></ul>
-    </section>
-    
     <div class="card mb-4">
         <div class="card-body">
             <h2>Skapa bokning</h2>
@@ -57,9 +87,9 @@
 
             <label class="form-label">Slutdatum</label>
             <input id="endDate" type="date" class="form-control mb-3">
-        
+
             <button onclick="loadCustomersForBooking(); loadRoomsForBooking();">
-            Ladda kunder och rum
+                Ladda kunder och rum
             </button>
             <br><br>
             <button class="btn btn-success" onclick="createBooking()">Skapa bokning
