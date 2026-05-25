@@ -71,23 +71,41 @@ function showMessage(text) {
 }
 
 async function loadRooms() {
-    const response = await fetch(`${API_URL}/rooms`);
-    const rooms = await response.json();
-    const list = document.getElementById("rooms");
+    try {
+        const response = await fetch(`${API_URL}/rooms`);
 
-    list.innerHTML = "";
+        if (!response.ok) {
+            console.error("Kunde inte hämta rum:", response.status);
+            return;
+        }
 
-    rooms.forEach(room => {
-        const li = document.createElement("li");
-    
-        li.textContent = `Rum ${room.roomNumber} - 
-        ${room.beds} sängar -
-        ${formatBedType(room.bedType)} - 
-        ${room.pricePerNight} kr/natt`;
+        const rooms = await response.json();
+        const list = document.getElementById("rooms");
 
-        list.appendChild(li);
-    });
+        list.innerHTML = "";
+
+        rooms.forEach(room => {
+            const li = document.createElement("li");
+
+            li.className = "list-group-item fw-medium py-3 text-start";
+
+            li.textContent = `
+            Rum ${room.roomNumber} - 
+            ${room.beds} sängar - 
+            ${formatBedType(room.bedType)} - 
+            ${room.pricePerNight} kr/natt
+            `;
+
+            list.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error("Nätverksfel vid hämtning av rum:", error);
+        const list = document.getElementById("rooms");
+        list.innerHTML = `<li class="list-group-item text-danger py-3">Kunde inte ladda rum. Kontrollera anslutningen.</li>`;
+    }
 }
+
 
 async function loadRoomsForBooking() {
     const response = await fetch(`${API_URL}/rooms`);
@@ -124,10 +142,12 @@ async function createBooking() {
 }
 
 function formatBedType(bedType) {
-    switch(bedType) {
+    switch (bedType) {
         case "SINGLE_BED": return "Enkelrum";
         case "DOUBLE_BED": return "Dubbelrum";
         case "TWIN_ROOM": return "Tvåbäddsrum";
         default: return bedType;
     }
 }
+
+document.addEventListener("DOMContentLoaded", loadRooms);
