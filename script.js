@@ -58,13 +58,23 @@ async function createCustomer() {
         const data = await response.json();
 
         if (response.ok) {
-            showCustomerMessage("🎉 Kund skapad med framgång!", false);
+            const successMessage = `Kunden har registrerats med framgång!
             
+            Förnamn: ${data.firstName} 
+            Efternamn: ${data.lastName}
+            E-post: ${data.email}
+            Telefon: ${data.phone}`;
+
+            document.getElementById("customerModalBody").innerHTML = successMessage;
+
+            const myModal = new bootstrap.Modal(document.getElementById('customerModal'));
+            myModal.show();
+
             document.getElementById("firstName").value = "";
             document.getElementById("lastName").value = "";
             document.getElementById("email").value = "";
             document.getElementById("phone").value = "";
-            
+
             loadCustomersForBooking();
             return;
         }
@@ -110,7 +120,7 @@ async function searchAvailableRooms() {
         data.forEach(room => {
             const li = document.createElement("li");
             li.className = "list-group-item d-flex justify-content-between align-items-center fw-medium py-3 ps-4 pe-3";
-            
+
             li.innerHTML = `
                 <div class="text-start">
                     <span class="d-block text-dark fw-bold">Rum ${room.roomNumber} (${formatBedType(room.bedType)})</span>
@@ -144,11 +154,11 @@ async function createBooking() {
     showBookingMessage("", false);
 
     const booking = {
-        customerEmail: document.getElementById("customerEmail").value.trim(), 
+        customerEmail: document.getElementById("customerEmail").value.trim(),
         roomId: document.getElementById("roomId").value,
         startDate: document.getElementById("startDate").value,
         endDate: document.getElementById("endDate").value,
-        extraBedRequested: document.getElementById("extraBedRequested").checked 
+        extraBedRequested: document.getElementById("extraBedRequested").checked
     };
 
     if (!booking.customerEmail || !booking.roomId || !booking.startDate || !booking.endDate) {
@@ -172,16 +182,34 @@ async function createBooking() {
         const data = await response.json();
 
         if (response.ok) {
-            showBookingMessage("🎉 Bokning skapad med framgång!", false);
-        
+            // 1. Bygg texten till popupen
+
+            const successMessage = `🎉 Bokning skapad med framgång!
+
+            Boknings-ID: ${data.id}
+            Rum: ${data.roomNumber}
+            Gäst: ${data.customerFirstName} ${data.customerLastName}
+            E-post: ${data.customerEmail}
+            Datum: ${data.startDate} till ${data.endDate}
+            ${data.extraBedIncluded ? "• Extrasäng: Inkluderad" : ""}`;
+
+
+            // 2. Tryck in texten i popupens body
+            document.getElementById("bookingModalBody").innerHTML = successMessage;
+
+            // 3. Öppna popupen (Bootstrap 5 syntax)
+            const myModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+            myModal.show();
+
+            // Nollställ formulärfält (din befintliga kod)
             document.getElementById("customerEmail").value = "";
             document.getElementById("startDate").value = "";
             document.getElementById("endDate").value = "";
             document.getElementById("roomId").value = "";
-            
+
             const extraBedCheckbox = document.getElementById("extraBedRequested");
             if (extraBedCheckbox) extraBedCheckbox.checked = false;
-            
+
             document.getElementById("rooms").innerHTML = '<li class="list-group-item text-muted py-3">Bokning slutförd. Sök på nytt för att se tillgängliga rum!</li>';
             return;
         }
@@ -189,7 +217,7 @@ async function createBooking() {
         showBookingMessage(`Fel: ${data.message || "Kunde inte skapa bokning."}`);
 
     } catch (error) {
-        console.error("Nätverksfel:", error);
+        console.error("Det uppstod ett fel i JavaScript-exekveringen:", error);
         showBookingMessage("Kunde inte ansluta till servern.");
     }
 }
@@ -199,7 +227,7 @@ async function loadCustomersForBooking() {
         const response = await fetch(`${API_URL}/customers`);
         const customers = await response.json();
         const select = document.getElementById("customerId");
-        
+
         select.innerHTML = '<option value="">-- Välj kund --</option>';
         customers.forEach(c => {
             const opt = document.createElement("option");
@@ -207,8 +235,8 @@ async function loadCustomersForBooking() {
             opt.textContent = `${c.firstName} ${c.lastName}`;
             select.appendChild(opt);
         });
-    } catch (e) { 
-        console.error("Kunde inte ladda kunder till bokningslistan", e); 
+    } catch (e) {
+        console.error("Kunde inte ladda kunder till bokningslistan", e);
     }
 }
 
@@ -217,7 +245,7 @@ async function loadRoomsForBooking() {
         const response = await fetch(`${API_URL}/rooms`);
         const rooms = await response.json();
         const select = document.getElementById("roomId");
-        
+
         select.innerHTML = '<option value="">-- Välj rum --</option>';
         rooms.forEach(r => {
             const opt = document.createElement("option");
@@ -225,8 +253,8 @@ async function loadRoomsForBooking() {
             opt.textContent = `Rum ${r.roomNumber} (${formatBedType(r.bedType)})`;
             select.appendChild(opt);
         });
-    } catch (e) { 
-        console.error("Kunde inte ladda rum till bokningslistan", e); 
+    } catch (e) {
+        console.error("Kunde inte ladda rum till bokningslistan", e);
     }
 }
 
@@ -248,7 +276,7 @@ async function fetchCustomerForUpdate() {
 
     try {
         const response = await fetch(`${API_URL}/customers/by-email?email=${email}`);
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             showUpdateMessage(`Fel: ${errorData.message || "Kunden hittades inte."}`);
@@ -277,7 +305,7 @@ async function fetchCustomerForUpdate() {
 
 async function updateCustomer() {
     showUpdateMessage("", false);
-    
+
     const email = document.getElementById("updateSearchEmail").value.trim();
     const updateRequest = {
         firstName: document.getElementById("updateFirstName").value.trim(),
@@ -291,7 +319,7 @@ async function updateCustomer() {
     }
 
     try {
-  
+
         const response = await fetch(`${API_URL}/customers/email/${email}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -300,13 +328,13 @@ async function updateCustomer() {
 
         if (response.ok) {
             showUpdateMessage("🎉 Kunduppgifterna har uppdaterats med framgång!", false);
-            
-        
+
+
             document.getElementById("updateFirstName").disabled = true;
             document.getElementById("updateLastName").disabled = true;
             document.getElementById("updatePhone").disabled = true;
             document.getElementById("updateSubmitBtn").disabled = true;
-            
+
             return;
         }
 
@@ -324,7 +352,7 @@ function formatBedType(bedType) {
         case "SINGLE_BED": return "Enkelrum";
         case "DOUBLE_BED": return "Dubbelrum";
         case "TWIN_ROOM": return "Tvåbäddsrum";
-        default: return bedType; 
+        default: return bedType;
     }
 }
 
