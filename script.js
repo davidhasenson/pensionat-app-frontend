@@ -1,144 +1,333 @@
-const API_URL = 'http://localhost:8080/api'
+const API_URL = 'http://localhost:8080/api';
 
+// Global variabel för att spara rummen lokalt om det behövs
+let allRooms = [];
+
+// --- HJÄLPMETODER FÖR ATT VISA MEDDELANDEN I GRÄNSSNITTET ---
+function showCustomerMessage(text, isError = true) {
+    const el = document.getElementById("customer-message");
+    el.innerHTML = text;
+    el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
+}
+
+function showBookingMessage(text, isError = true) {
+    const el = document.getElementById("booking-message");
+    el.innerHTML = text;
+    el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
+}
+
+function showSearchMessage(text, isError = true) {
+    const el = document.getElementById("search-message");
+    el.innerHTML = text;
+    el.className = isError ? "mt-2 text-center small fw-medium text-danger" : "mt-2 text-center small fw-medium text-success";
+}
+
+
+// --- 1. SKAPA KUND ---
 async function createCustomer() {
-
-    showMessage("");
+    showCustomerMessage("", false);
 
     const customer = {
-        firstName: document.getElementById("firstName").value,
-        lastName: document.getElementById("lastName").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value
-
+        firstName: document.getElementById("firstName").value.trim(),
+        lastName: document.getElementById("lastName").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone: document.getElementById("phone").value.trim()
     };
 
+    // Validering direkt i frontend (första försvarslinjen)
     if (!customer.firstName || !customer.lastName || !customer.email || !customer.phone) {
-        showMessage("Fel: Alla fält måste fyllas i!");
+        showCustomerMessage("Fel: Alla fält måste fyllas i!");
         return;
     }
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-        showMessage("Fel: E-postadressen är ogiltig. Kontrollera att du har med '@' och en punkt (t.ex. namn@test.com).");
+    if (!emailPattern.test(customer.email)) {
+        showCustomerMessage("Fel: Ogiltig e-postadress. (t.ex. namn@test.com).");
         return;
     }
 
     const phonePattern = /^[0-9+\s-]+$/;
-    if (!phonePattern.test(phone)) {
-        showMessage("Fel: Telefonnumret får bara innehålla siffror, mellanslag, eller tecken som + och -.");
+    if (!phonePattern.test(customer.phone)) {
+        showCustomerMessage("Fel: Telefonnumret får bara innehålla siffror, +, - eller mellanslag.");
         return;
     }
 
     try {
         const response = await fetch(`${API_URL}/customers`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(customer)
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            showMessage("Kund skapad med framgång!");
-            clearForm();
+            showCustomerMessage("🎉 Kund skapad med framgång!", false);
+            
+            // Töm inputfälten efter lyckad skapelse
+            document.getElementById("firstName").value = "";
+            document.getElementById("lastName").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("phone").value = "";
+            
+            // Synka om kundlistan i bokningsmenyn automatiskt
+            loadCustomersForBooking();
             return;
         }
 
-        if (response.status === 400) {
-            const errorData = await response.json();
-
-            if (errorData.errors) {
-                const serverErrors = Object.values(errorData.errors).join(", ");
-                showMessage(`Fel: Ogiltig data inskickad. Kontrollera dina inmatningar.<br><strong>Detaljer:</strong> ${serverErrors}`);
-            }
-
-            else if (errorData.error) {
-                showMessage(`Fel: Ogiltig data inskickad. Kontrollera dina inmatningar.<br><strong>Detaljer:</strong> ${errorData.error}`);
-            }
-            else {
-                showMessage("Fel: Ogiltig data inskickad. Kontrollera dina inmatningar.");
-            }
-        }
+        // Nyttja din GlobalExceptionHandler vid t.ex. valideringsfel från backend
+        showCustomerMessage(`Fel: ${data.message || "Ogiltig data inskickad."}`);
 
     } catch (error) {
         console.error("Nätverksfel:", error);
-        showMessage("Kunde inte ansluta till servern. Försök igen senare.");
+        showCustomerMessage("Kunde inte ansluta till servern. Försök igen senare.");
     }
 }
 
-function showMessage(text) {
-    document.getElementById("message").innerHTML = text;
-}
 
-async function loadRooms() {
+// --- 2. SÖK LEDIGA RUM BASERAT PÅ DATUM (ANROPAR BACKEND) ---
+async function searchAvailableRooms() {
+    const startEl = document.getElementById("searchStartDate");
+    const endEl = document.getElementById("searchEndDate");
+    const list = document.getElementById("rooms");
+
+    showSearchMessage("", false);
+
+    if (!startEl.value || !endEl.value) {
+        showSearchMessage("Fel: Du måste fylla i både in- och utcheckningsdatum!");
+        return;
+    }
+
     try {
-        const response = await fetch(`${API_URL}/rooms`);
+        list.innerHTML = '<li class="list-group-item text-muted py-3">Letar efter lediga rum...</li>';
+
+        // Anropa ditt tillgänglighets-API
+        const response = await fetch(`${API_URL}/rooms/available?startDate=${startEl.value}&endDate=${endEl.value}`);
+        const data = await response.json();
 
         if (!response.ok) {
-            console.error("Kunde inte hämta rum:", response.status);
+            showSearchMessage(`Fel: ${data.message || "Kunde inte hämta rum."}`);
+            list.innerHTML = `<li class="list-group-item text-danger py-3">${data.message || "Ett fel uppstod."}</li>`;
             return;
         }
 
-        const rooms = await response.json();
-        const list = document.getElementById("rooms");
+        if (data.length === 0) {
+            list.innerHTML = '<li class="list-group-item text-warning py-3">Det finns inga lediga rum under denna period.</li>';
+            return;
+        }
 
         list.innerHTML = "";
-
-        rooms.forEach(room => {
+        data.forEach(room => {
             const li = document.createElement("li");
-
-            li.className = "list-group-item fw-medium py-3 text-start";
-
-            li.textContent = `
-            Rum ${room.roomNumber} - 
-            ${room.beds} sängar - 
-            ${formatBedType(room.bedType)} - 
-            ${room.pricePerNight} kr/natt
+            li.className = "list-group-item d-flex justify-content-between align-items-center fw-medium py-3 ps-4 pe-3";
+            
+            li.innerHTML = `
+                <div class="text-start">
+                    <span class="d-block text-dark fw-bold">Rum ${room.roomNumber} (${formatBedType(room.bedType)})</span>
+                    <small class="text-muted">${room.beds} sängar — <span class="text-success fw-bold">${room.pricePerNight} kr</span>/natt</small>
+                </div>
+                <button class="btn btn-sm btn-outline-success fw-bold" onclick="selectRoomForBooking(${room.id}, '${startEl.value}', '${endEl.value}')">
+                    Välj
+                </button>
             `;
-
             list.appendChild(li);
         });
 
     } catch (error) {
-        console.error("Nätverksfel vid hämtning av rum:", error);
-        const list = document.getElementById("rooms");
-        list.innerHTML = `<li class="list-group-item text-danger py-3">Kunde inte ladda rum. Kontrollera anslutningen.</li>`;
+        console.error("Nätverksfel vid sökning:", error);
+        list.innerHTML = `<li class="list-group-item text-danger py-3">Kunde inte ansluta till servern.</li>`;
     }
 }
 
 
-async function loadRoomsForBooking() {
-    const response = await fetch(`${API_URL}/rooms`);
-    const rooms = await response.json();
-    const roomSelect = document.getElementById("bookingRoomId");
+function selectRoomForBooking(roomId, startDate, endDate) {
+    const roomSelect = document.getElementById("roomId");
+    roomSelect.value = roomId;
 
-    roomSelect.innerHTML = "";
+    document.getElementById("startDate").value = startDate;
+    document.getElementById("endDate").value = endDate;
 
-    rooms.forEach(room => {
-        const option = document.createElement("option");
-        option.value = room.id;
-        option.textContent = `Rum ${room.roomNumber}`;
-        roomSelect.appendChild(option);
-    });
+    roomSelect.focus();
+    showBookingMessage("Rum och datum har fyllts i! Skriv in kundens e-post och klicka på 'Skapa bokning'.", false);
 }
 
 async function createBooking() {
+    showBookingMessage("", false);
+
     const booking = {
-        customerId: document.getElementById("customerId").value,
+        customerEmail: document.getElementById("customerEmail").value.trim(), 
         roomId: document.getElementById("roomId").value,
         startDate: document.getElementById("startDate").value,
         endDate: document.getElementById("endDate").value
     };
 
-    const response = await fetch(`${API_URL}/bookings`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(booking)
-    });
+    if (!booking.customerEmail || !booking.roomId || !booking.startDate || !booking.endDate) {
+        showBookingMessage("Fel: Du måste fylla i alla fält (E-post, Rum, Start- och Slutdatum)!");
+        return;
+    }
 
-    showMessage(response.ok ? "Bokning skapad" : "Fel vid skapande av bokning.");
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(booking.customerEmail)) {
+        showBookingMessage("Fel: Ange en giltig e-postadress för kunden.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(booking)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showBookingMessage("🎉 Bokning skapad med framgång!", false);
+        
+            document.getElementById("customerEmail").value = "";
+            document.getElementById("startDate").value = "";
+            document.getElementById("endDate").value = "";
+            document.getElementById("roomId").value = "";
+            
+            document.getElementById("rooms").innerHTML = '<li class="list-group-item text-muted py-3">Bokning slutförd. Sök på nytt för att se tillgängliga rum!</li>';
+            return;
+        }
+
+    
+        showBookingMessage(`Fel: ${data.message || "Kunde inte skapa bokning."}`);
+
+    } catch (error) {
+        console.error("Nätverksfel:", error);
+        showBookingMessage("Kunde inte ansluta till servern.");
+    }
+}
+
+async function loadCustomersForBooking() {
+    try {
+        const response = await fetch(`${API_URL}/customers`);
+        const customers = await response.json();
+        const select = document.getElementById("customerId");
+        
+        select.innerHTML = '<option value="">-- Välj kund --</option>';
+        customers.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.id;
+            opt.textContent = `${c.firstName} ${c.lastName}`;
+            select.appendChild(opt);
+        });
+    } catch (e) { 
+        console.error("Kunde inte ladda kunder till bokningslistan", e); 
+    }
+}
+
+async function loadRoomsForBooking() {
+    try {
+        const response = await fetch(`${API_URL}/rooms`);
+        const rooms = await response.json();
+        const select = document.getElementById("roomId");
+        
+        select.innerHTML = '<option value="">-- Välj rum --</option>';
+        rooms.forEach(r => {
+            const opt = document.createElement("option");
+            opt.value = r.id;
+            opt.textContent = `Rum ${r.roomNumber} (${formatBedType(r.bedType)})`;
+            select.appendChild(opt);
+        });
+    } catch (e) { 
+        console.error("Kunde inte ladda rum till bokningslistan", e); 
+    }
+}
+// Hjälpmetod för uppdateringsmeddelanden
+function showUpdateMessage(text, isError = true) {
+    const el = document.getElementById("update-message");
+    el.innerHTML = text;
+    el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
+}
+
+// --- HÄMTA KUND INFÖR UPPDATERING ---
+async function fetchCustomerForUpdate() {
+    showUpdateMessage("", false);
+    const email = document.getElementById("updateSearchEmail").value.trim();
+
+    if (!email) {
+        showUpdateMessage("Fel: Ange en e-postadress att söka efter!");
+        return;
+    }
+
+    try {
+        // Anropar GET-endpointen med ?email=
+        const response = await fetch(`${API_URL}/customers/by-email?email=${email}`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            showUpdateMessage(`Fel: ${errorData.message || "Kunden hittades inte."}`);
+            return;
+        }
+
+        const data = await response.json();
+
+        // Fyll i fälten med kundens nuvarande data
+        document.getElementById("updateFirstName").value = data.firstName;
+        document.getElementById("updateLastName").value = data.lastName;
+        document.getElementById("updatePhone").value = data.phone || "";
+
+        // Lås upp fälten och spara-knappen
+        document.getElementById("updateFirstName").disabled = false;
+        document.getElementById("updateLastName").disabled = false;
+        document.getElementById("updatePhone").disabled = false;
+        document.getElementById("updateSubmitBtn").disabled = false;
+
+        showUpdateMessage("Kunduppgifter hämtade! Du kan nu redigera fälten nedan.", false);
+
+    } catch (error) {
+        console.error("Nätverksfel:", error);
+        showUpdateMessage("Kunde inte ansluta till servern.");
+    }
+}
+
+// --- SKICKA UPPDATERADE UPPGIFTER (PUT) ---
+async function updateCustomer() {
+    showUpdateMessage("", false);
+    
+    const email = document.getElementById("updateSearchEmail").value.trim();
+    const updateRequest = {
+        firstName: document.getElementById("updateFirstName").value.trim(),
+        lastName: document.getElementById("updateLastName").value.trim(),
+        phone: document.getElementById("updatePhone").value.trim()
+    };
+
+    if (!updateRequest.firstName || !updateRequest.lastName) {
+        showUpdateMessage("Fel: Förnamn och efternamn måste anges!");
+        return;
+    }
+
+    try {
+        // Anropar PUT-endpointen med /email/{email}
+        const response = await fetch(`${API_URL}/customers/email/${email}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateRequest)
+        });
+
+        if (response.ok) {
+            showUpdateMessage("🎉 Kunduppgifterna har uppdaterats med framgång!", false);
+            
+            // Lås fälten igen
+            document.getElementById("updateFirstName").disabled = true;
+            document.getElementById("updateLastName").disabled = true;
+            document.getElementById("updatePhone").disabled = true;
+            document.getElementById("updateSubmitBtn").disabled = true;
+            
+            return;
+        }
+
+        const errorData = await response.json();
+        showUpdateMessage(`Fel: ${errorData.message || "Kunde inte uppdatera uppgifterna."}`);
+
+    } catch (error) {
+        console.error("Nätverksfel:", error);
+        showUpdateMessage("Kunde inte ansluta till servern.");
+    }
 }
 
 function formatBedType(bedType) {
@@ -146,8 +335,10 @@ function formatBedType(bedType) {
         case "SINGLE_BED": return "Enkelrum";
         case "DOUBLE_BED": return "Dubbelrum";
         case "TWIN_ROOM": return "Tvåbäddsrum";
-        default: return bedType;
+        default: return bedType; 
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadRooms);
+document.addEventListener("DOMContentLoaded", () => {
+    loadRoomsForBooking();
+});
