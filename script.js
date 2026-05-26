@@ -26,6 +26,19 @@ function showDeleteMessage(text, isError = true) {
     el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
 }
 
+function showDeleteBookingMessage(text, isError = true) {
+    const el = document.getElementById("delete-booking-message");
+    el.innerHTML = text;
+    el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
+}
+
+function showUpdateBookingMessage(text, isError = true) {
+    const el = document.getElementById("update-booking-message");
+    el.innerHTML = text;
+    el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
+}
+
+
 async function createCustomer() {
     showCustomerMessage("", false);
 
@@ -191,16 +204,21 @@ async function createBooking() {
 
             const successMessage = `🎉 Bokning skapad med framgång!
 
-            Boknings-ID: ${data.id}
+            VIKTIGT: Notera Boknings-ID nedan om bokningen behöver ändras eller avbokas!
+            Boknings-ID: ${data.id} 
+
+            --------------------------------------------------
             Rum: ${data.roomNumber}
             Gäst: ${data.customerFirstName} ${data.customerLastName}
             E-post: ${data.customerEmail}
             Datum: ${data.startDate} till ${data.endDate}
-            ${data.extraBedIncluded ? "• Extrasäng: Inkluderad" : ""}`;
+            ${data.extraBedIncluded ? "Extrasäng: Inkluderad" : ""}`;
 
+            const modalBody = document.getElementById("bookingModalBody");
+            modalBody.innerHTML = successMessage;
 
-            // 2. Tryck in texten i popupens body
-            document.getElementById("bookingModalBody").innerHTML = successMessage;
+            // NYTT: Spara ID:t direkt på HTML-elementet som ett dolt attribut!
+            modalBody.setAttribute("data-booking-id", data.id);
 
             // 3. Öppna popupen (Bootstrap 5 syntax)
             const myModal = new bootstrap.Modal(document.getElementById('bookingModal'));
@@ -226,6 +244,135 @@ async function createBooking() {
         showBookingMessage("Kunde inte ansluta till servern.");
     }
 }
+function copyCreatedBookingId() {
+    // Hämta ID-numret direkt från HTML-elementets dolda attribut
+    const modalBody = document.getElementById("bookingModalBody");
+    const bookingId = modalBody.getAttribute("data-booking-id");
+
+    if (!bookingId) return;
+
+    // Kopiera till urklipp
+    navigator.clipboard.writeText(bookingId).then(() => {
+        const copyBtn = document.getElementById("copyBookingIdBtn");
+
+        // Visuell feedback till användaren
+        copyBtn.textContent = "Kopierat!";
+        copyBtn.className = "btn btn-success fw-bold";
+
+        // Återställ knappen efter 2 sekunder
+        setTimeout(() => {
+            copyBtn.textContent = "📋 Kopiera Boknings-ID";
+            copyBtn.className = "btn btn-outline-dark fw-bold";
+        }, 2000);
+    }).catch(err => {
+        console.error("Kunde inte kopiera text: ", err);
+    });
+}
+
+// Hämta bokningen för att visa den i formuläret
+async function findBookingForUpdate() {
+    const id = document.getElementById("searchBookingId").value.trim();
+    const updateSection = document.getElementById("updateSection");
+    
+    if (!id) {
+        alert("Du måste ange ett Boknings-ID!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/bookings/${id}`);
+        
+        if (response.ok) {
+            const booking = await response.json();
+            
+            updateSection.style.display = "block";
+            
+            document.getElementById("updateBookingId").value = booking.id;
+            document.getElementById("updateStartDate").value = booking.startDate;
+            document.getElementById("updateEndDate").value = booking.endDate;
+            document.getElementById("updateExtraBedRequested").checked = booking.extraBedIncluded;
+      
+            document.getElementById("updateRoomId").value = booking.roomId || "";
+      
+            document.getElementById("displayBookingId").textContent = `#${booking.id}`;
+            
+            showUpdateBookingMessage("Bokning hittad! Ändra detaljerna nedan och spara.", false);
+        } else {
+            updateSection.style.display = "none";
+            alert("Hittade ingen bokning med det ID:t");
+        }
+    } catch (error) {
+        console.error("Fel vid sökning:", error);
+        alert("Kunde inte ansluta till servern.");
+    }
+}
+
+async function updateBooking() {
+    showUpdateBookingMessage("", false);
+
+    const bookingId = document.getElementById("updateBookingId").value.trim();
+    const roomIdValue = document.getElementById("updateRoomId").value.trim();
+
+    const updateData = {
+        startDate: document.getElementById("updateStartDate").value,
+        endDate: document.getElementById("updateEndDate").value,
+        roomId: roomIdValue ? parseInt(roomIdValue) : null,
+        extraBedRequested: document.getElementById("updateExtraBedRequested").checked
+    };
+
+    if (!bookingId || !updateData.startDate || !updateData.endDate || !updateData.roomId) {
+        showUpdateBookingMessage("Fel: Boknings-ID, startdatum, slutdatum och rums-ID måste vara ifyllda!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/bookings/${bookingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // 1. Bygg texten till den nya popupen (anpassa fältnamnen efter vad din backend returnerar)
+            const successMessage = `🎉 Bokningen har uppdaterats med framgång!
+
+            Boknings-ID: ${data.id} 
+            --------------------------------------------------
+            Nytt datum: ${data.startDate} till ${data.endDate}
+            Rum: ${data.roomNumber}
+            Gäst: ${data.customerFirstName || ""} ${data.customerLastName || ""}
+            E-post: ${data.customerEmail}
+            ${data.extraBedIncluded ? "Extrasäng: Ja" : "Extrasäng: Nej"}`;
+            
+            // 2. Skicka in texten i modalens body
+            document.getElementById("updateBookingModalBody").innerHTML = successMessage;
+
+            // 3. Öppna den nya gula uppdaterings-modalen
+            const myModal = new bootstrap.Modal(document.getElementById('updateBookingModal'));
+            myModal.show();
+
+            // 4. Nollställ fält och dölj redigeringssektionen
+            document.getElementById("updateBookingId").value = "";
+            document.getElementById("updateRoomId").value = "";
+            document.getElementById("updateStartDate").value = "";
+            document.getElementById("updateEndDate").value = "";
+            document.getElementById("updateExtraBedRequested").checked = false;
+            document.getElementById("searchBookingId").value = "";
+            document.getElementById("updateSection").style.display = "none";
+            
+            return;
+        }
+
+        showUpdateBookingMessage(`Fel: ${data.message || "Kunde inte uppdatera bokningen."}`);
+
+    } catch (error) {
+        console.error("Nätverksfel vid uppdatering av bokning:", error);
+        showUpdateBookingMessage("Kunde inte ansluta till servern.");
+    }
+}
+
 /*
 async function loadCustomersForBooking() {
     try {
@@ -379,7 +526,7 @@ let emailToDelete = "";
 // 1. Öppnar bekräftelse-popupen
 function deleteCustomer() {
     showDeleteMessage("", false);
-    
+
     const email = document.getElementById("deleteEmail").value.trim();
 
     if (!email) {
@@ -428,6 +575,58 @@ async function executeDeleteCustomer() {
     }
 }
 
+let bookingIdToDelete = "";
+
+// 1. Öppnar bekräftelse-popupen för bokningen
+function deleteBooking() {
+    showDeleteBookingMessage("", false);
+
+    const bookingId = document.getElementById("deleteBookingId").value.trim();
+
+    if (!bookingId) {
+        showDeleteBookingMessage("Fel: Du måste ange ett Boknings-ID!");
+        return;
+    }
+
+    bookingIdToDelete = bookingId;
+    document.getElementById("deleteConfirmBookingIdText").textContent = bookingId;
+
+    const confirmModal = new bootstrap.Modal(document.getElementById('deleteBookingConfirmModal'));
+    confirmModal.show();
+}
+
+// Körs när man klickar på "Ja, avboka permanent" i modalen
+async function executeDeleteBooking() {
+    const confirmModalEl = document.getElementById('deleteBookingConfirmModal');
+    const modalInstance = bootstrap.Modal.getInstance(confirmModalEl);
+    if (modalInstance) modalInstance.hide();
+
+    try {
+        // ÄNDRAT: Skickar nu PATCH till /api/bookings/{id}/cancel
+        const response = await fetch(`${API_URL}/bookings/${bookingIdToDelete}/cancel`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Bokningen lyckades avbokas och vi har tillgång till det uppdaterade objektet (data)
+            showDeleteBookingMessage(`🎉 Bokningen (ID: ${data.id}) har avbokats! Status är nu: Avbokad.`, false);
+            document.getElementById("deleteBookingId").value = "";
+            bookingIdToDelete = "";
+            return;
+        }
+
+        showDeleteBookingMessage(`Fel: ${data.message || "Kunde inte avboka."}`);
+
+    } catch (error) {
+        console.error("Nätverksfel vid avbokning:", error);
+        showDeleteBookingMessage("Kunde inte ansluta till servern.");
+    }
+}
 function formatBedType(bedType) {
     switch (bedType) {
         case "SINGLE_BED": return "Enkelrum";
