@@ -1,9 +1,8 @@
 const API_URL = 'http://localhost:8080/api';
 
-// Global variabel för att spara rummen lokalt om det behövs
 let allRooms = [];
 
-// --- HJÄLPMETODER FÖR ATT VISA MEDDELANDEN I GRÄNSSNITTET ---
+
 function showCustomerMessage(text, isError = true) {
     const el = document.getElementById("customer-message");
     el.innerHTML = text;
@@ -22,8 +21,6 @@ function showSearchMessage(text, isError = true) {
     el.className = isError ? "mt-2 text-center small fw-medium text-danger" : "mt-2 text-center small fw-medium text-success";
 }
 
-
-// --- 1. SKAPA KUND ---
 async function createCustomer() {
     showCustomerMessage("", false);
 
@@ -34,7 +31,6 @@ async function createCustomer() {
         phone: document.getElementById("phone").value.trim()
     };
 
-    // Validering direkt i frontend (första försvarslinjen)
     if (!customer.firstName || !customer.lastName || !customer.email || !customer.phone) {
         showCustomerMessage("Fel: Alla fält måste fyllas i!");
         return;
@@ -64,18 +60,15 @@ async function createCustomer() {
         if (response.ok) {
             showCustomerMessage("🎉 Kund skapad med framgång!", false);
             
-            // Töm inputfälten efter lyckad skapelse
             document.getElementById("firstName").value = "";
             document.getElementById("lastName").value = "";
             document.getElementById("email").value = "";
             document.getElementById("phone").value = "";
             
-            // Synka om kundlistan i bokningsmenyn automatiskt
             loadCustomersForBooking();
             return;
         }
 
-        // Nyttja din GlobalExceptionHandler vid t.ex. valideringsfel från backend
         showCustomerMessage(`Fel: ${data.message || "Ogiltig data inskickad."}`);
 
     } catch (error) {
@@ -84,8 +77,6 @@ async function createCustomer() {
     }
 }
 
-
-// --- 2. SÖK LEDIGA RUM BASERAT PÅ DATUM (ANROPAR BACKEND) ---
 async function searchAvailableRooms() {
     const startEl = document.getElementById("searchStartDate");
     const endEl = document.getElementById("searchEndDate");
@@ -101,7 +92,6 @@ async function searchAvailableRooms() {
     try {
         list.innerHTML = '<li class="list-group-item text-muted py-3">Letar efter lediga rum...</li>';
 
-        // Anropa ditt tillgänglighets-API
         const response = await fetch(`${API_URL}/rooms/available?startDate=${startEl.value}&endDate=${endEl.value}`);
         const data = await response.json();
 
@@ -139,7 +129,6 @@ async function searchAvailableRooms() {
     }
 }
 
-
 function selectRoomForBooking(roomId, startDate, endDate) {
     const roomSelect = document.getElementById("roomId");
     roomSelect.value = roomId;
@@ -158,7 +147,8 @@ async function createBooking() {
         customerEmail: document.getElementById("customerEmail").value.trim(), 
         roomId: document.getElementById("roomId").value,
         startDate: document.getElementById("startDate").value,
-        endDate: document.getElementById("endDate").value
+        endDate: document.getElementById("endDate").value,
+        extraBedRequested: document.getElementById("extraBedRequested").checked 
     };
 
     if (!booking.customerEmail || !booking.roomId || !booking.startDate || !booking.endDate) {
@@ -189,11 +179,13 @@ async function createBooking() {
             document.getElementById("endDate").value = "";
             document.getElementById("roomId").value = "";
             
+            const extraBedCheckbox = document.getElementById("extraBedRequested");
+            if (extraBedCheckbox) extraBedCheckbox.checked = false;
+            
             document.getElementById("rooms").innerHTML = '<li class="list-group-item text-muted py-3">Bokning slutförd. Sök på nytt för att se tillgängliga rum!</li>';
             return;
         }
 
-    
         showBookingMessage(`Fel: ${data.message || "Kunde inte skapa bokning."}`);
 
     } catch (error) {
@@ -237,14 +229,14 @@ async function loadRoomsForBooking() {
         console.error("Kunde inte ladda rum till bokningslistan", e); 
     }
 }
-// Hjälpmetod för uppdateringsmeddelanden
+
 function showUpdateMessage(text, isError = true) {
     const el = document.getElementById("update-message");
     el.innerHTML = text;
     el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
 }
 
-// --- HÄMTA KUND INFÖR UPPDATERING ---
+
 async function fetchCustomerForUpdate() {
     showUpdateMessage("", false);
     const email = document.getElementById("updateSearchEmail").value.trim();
@@ -255,7 +247,6 @@ async function fetchCustomerForUpdate() {
     }
 
     try {
-        // Anropar GET-endpointen med ?email=
         const response = await fetch(`${API_URL}/customers/by-email?email=${email}`);
         
         if (!response.ok) {
@@ -266,12 +257,10 @@ async function fetchCustomerForUpdate() {
 
         const data = await response.json();
 
-        // Fyll i fälten med kundens nuvarande data
         document.getElementById("updateFirstName").value = data.firstName;
         document.getElementById("updateLastName").value = data.lastName;
         document.getElementById("updatePhone").value = data.phone || "";
 
-        // Lås upp fälten och spara-knappen
         document.getElementById("updateFirstName").disabled = false;
         document.getElementById("updateLastName").disabled = false;
         document.getElementById("updatePhone").disabled = false;
@@ -285,7 +274,7 @@ async function fetchCustomerForUpdate() {
     }
 }
 
-// --- SKICKA UPPDATERADE UPPGIFTER (PUT) ---
+
 async function updateCustomer() {
     showUpdateMessage("", false);
     
@@ -302,7 +291,7 @@ async function updateCustomer() {
     }
 
     try {
-        // Anropar PUT-endpointen med /email/{email}
+  
         const response = await fetch(`${API_URL}/customers/email/${email}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -312,7 +301,7 @@ async function updateCustomer() {
         if (response.ok) {
             showUpdateMessage("🎉 Kunduppgifterna har uppdaterats med framgång!", false);
             
-            // Lås fälten igen
+        
             document.getElementById("updateFirstName").disabled = true;
             document.getElementById("updateLastName").disabled = true;
             document.getElementById("updatePhone").disabled = true;
