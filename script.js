@@ -1,6 +1,5 @@
 const API_URL = 'http://localhost:8080/api';
 
-let allRooms = [];
 
 
 function showCustomerMessage(text, isError = true) {
@@ -19,6 +18,12 @@ function showSearchMessage(text, isError = true) {
     const el = document.getElementById("search-message");
     el.innerHTML = text;
     el.className = isError ? "mt-2 text-center small fw-medium text-danger" : "mt-2 text-center small fw-medium text-success";
+}
+
+function showDeleteMessage(text, isError = true) {
+    const el = document.getElementById("delete-message");
+    el.innerHTML = text;
+    el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
 }
 
 async function createCustomer() {
@@ -221,7 +226,7 @@ async function createBooking() {
         showBookingMessage("Kunde inte ansluta till servern.");
     }
 }
-
+/*
 async function loadCustomersForBooking() {
     try {
         const response = await fetch(`${API_URL}/customers`);
@@ -238,7 +243,7 @@ async function loadCustomersForBooking() {
     } catch (e) {
         console.error("Kunde inte ladda kunder till bokningslistan", e);
     }
-}
+}*/
 
 async function loadRoomsForBooking() {
     try {
@@ -306,7 +311,9 @@ async function fetchCustomerForUpdate() {
 async function updateCustomer() {
     showUpdateMessage("", false);
 
+    // Vi läser av e-posten direkt från sökfältet
     const email = document.getElementById("updateSearchEmail").value.trim();
+
     const updateRequest = {
         firstName: document.getElementById("updateFirstName").value.trim(),
         lastName: document.getElementById("updateLastName").value.trim(),
@@ -319,7 +326,7 @@ async function updateCustomer() {
     }
 
     try {
-
+        // Anropar din e-post-endpoint: /api/customers/email/{email}
         const response = await fetch(`${API_URL}/customers/email/${email}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -327,13 +334,32 @@ async function updateCustomer() {
         });
 
         if (response.ok) {
-            showUpdateMessage("🎉 Kunduppgifterna har uppdaterats med framgång!", false);
+            // Om din backend skickar tillbaka den uppdaterade kunden som JSON läser vi av den här
+            const data = await response.json();
 
+            // 1. Bygg meddelandet med de nya uppgifterna
+            const successMessage = `Kunduppgifterna har uppdaterats!
+            
+            Förnamn: ${data.firstName}
+            Efternamn: ${data.lastName}
+            E-post: ${email}
+            Telefon: ${data.phone || "Ej angivet"}`;
 
+            // 2. Skicka in texten i modalens body
+            document.getElementById("updateCustomerModalBody").innerHTML = successMessage;
+
+            // 3. Öppna din nya gula uppdaterings-modal på skärmen
+            const myModal = new bootstrap.Modal(document.getElementById('updateCustomerModal'));
+            myModal.show();
+
+            // Lås fälten igen så det ser snyggt och sparat ut
             document.getElementById("updateFirstName").disabled = true;
             document.getElementById("updateLastName").disabled = true;
             document.getElementById("updatePhone").disabled = true;
             document.getElementById("updateSubmitBtn").disabled = true;
+
+            // Töm sökfältet så man kan göra en ny sökning
+            document.getElementById("updateSearchEmail").value = "";
 
             return;
         }
@@ -344,6 +370,61 @@ async function updateCustomer() {
     } catch (error) {
         console.error("Nätverksfel:", error);
         showUpdateMessage("Kunde inte ansluta till servern.");
+    }
+}
+
+// Global variabel för att hålla koll på vilken e-post som ska raderas mellan de två stegen
+let emailToDelete = "";
+
+// 1. Öppnar bekräftelse-popupen
+function deleteCustomer() {
+    showDeleteMessage("", false);
+    
+    const email = document.getElementById("deleteEmail").value.trim();
+
+    if (!email) {
+        showDeleteMessage("Fel: Du måste ange en e-postadress!");
+        return;
+    }
+
+    // Spara undan e-posten i vår globala variabel så nästa funktion kommer åt den
+    emailToDelete = email;
+
+    // Skriv ut e-posten i popup-rutan så användaren ser vem som raderas
+    document.getElementById("deleteConfirmEmailText").textContent = email;
+
+    // Öppna den nya varnings-modalen
+    const confirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    confirmModal.show();
+}
+
+// 2. Körs när användaren klickar på "Ja, radera permanent" inuti popupen
+async function executeDeleteCustomer() {
+    // Stäng varnings-modalen direkt
+    const confirmModalEl = document.getElementById('deleteConfirmModal');
+    const modalInstance = bootstrap.Modal.getInstance(confirmModalEl);
+    if (modalInstance) modalInstance.hide();
+
+    try {
+        // Skicka DELETE-anrop till din backend
+        const response = await fetch(`${API_URL}/customers/email/${emailToDelete}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showDeleteMessage("🎉 Kunden har raderats från systemet med framgång!", false);
+            document.getElementById("deleteEmail").value = ""; // Töm textrutan på sidan
+            emailToDelete = ""; // Nollställ variabeln
+            return;
+        }
+
+        // Om kunden inte fanns eller något annat fel uppstod på servern
+        const errorData = await response.json();
+        showDeleteMessage(`Fel: ${errorData.message || "Kunde inte radera kunden."}`);
+
+    } catch (error) {
+        console.error("Nätverksfel vid radering:", error);
+        showDeleteMessage("Kunde inte ansluta till servern.");
     }
 }
 
