@@ -93,7 +93,6 @@ async function createCustomer() {
             document.getElementById("email").value = "";
             document.getElementById("phone").value = "";
 
-           
             return;
         }
 
@@ -200,7 +199,6 @@ async function createBooking() {
         const data = await response.json();
 
         if (response.ok) {
-            // 1. Bygg texten till popupen
 
             const successMessage = `🎉 Bokning skapad med framgång!
 
@@ -217,14 +215,11 @@ async function createBooking() {
             const modalBody = document.getElementById("bookingModalBody");
             modalBody.innerHTML = successMessage;
 
-            // NYTT: Spara ID:t direkt på HTML-elementet som ett dolt attribut!
             modalBody.setAttribute("data-booking-id", data.id);
 
-            // 3. Öppna popupen (Bootstrap 5 syntax)
             const myModal = new bootstrap.Modal(document.getElementById('bookingModal'));
             myModal.show();
 
-            // Nollställ formulärfält (din befintliga kod)
             document.getElementById("customerEmail").value = "";
             document.getElementById("startDate").value = "";
             document.getElementById("endDate").value = "";
@@ -244,22 +239,20 @@ async function createBooking() {
         showBookingMessage("Kunde inte ansluta till servern.");
     }
 }
+
 function copyCreatedBookingId() {
-    // Hämta ID-numret direkt från HTML-elementets dolda attribut
+    
     const modalBody = document.getElementById("bookingModalBody");
     const bookingId = modalBody.getAttribute("data-booking-id");
 
     if (!bookingId) return;
 
-    // Kopiera till urklipp
     navigator.clipboard.writeText(bookingId).then(() => {
         const copyBtn = document.getElementById("copyBookingIdBtn");
 
-        // Visuell feedback till användaren
         copyBtn.textContent = "Kopierat!";
         copyBtn.className = "btn btn-success fw-bold";
 
-        // Återställ knappen efter 2 sekunder
         setTimeout(() => {
             copyBtn.textContent = "📋 Kopiera Boknings-ID";
             copyBtn.className = "btn btn-outline-dark fw-bold";
@@ -269,7 +262,6 @@ function copyCreatedBookingId() {
     });
 }
 
-// Hämta bokningen för att visa den i formuläret
 async function findBookingForUpdate() {
     const id = document.getElementById("searchBookingId").value.trim();
     const updateSection = document.getElementById("updateSection");
@@ -335,7 +327,7 @@ async function updateBooking() {
         const data = await response.json();
 
         if (response.ok) {
-            // 1. Bygg texten till den nya popupen (anpassa fältnamnen efter vad din backend returnerar)
+
             const successMessage = `🎉 Bokningen har uppdaterats med framgång!
 
             Boknings-ID: ${data.id} 
@@ -346,14 +338,11 @@ async function updateBooking() {
             E-post: ${data.customerEmail}
             ${data.extraBedIncluded ? "Extrasäng: Ja" : "Extrasäng: Nej"}`;
 
-            // 2. Skicka in texten i modalens body
             document.getElementById("updateBookingModalBody").innerHTML = successMessage;
 
-            // 3. Öppna den nya gula uppdaterings-modalen
             const myModal = new bootstrap.Modal(document.getElementById('updateBookingModal'));
             myModal.show();
 
-            // 4. Nollställ fält och dölj redigeringssektionen
             document.getElementById("updateBookingId").value = "";
             document.getElementById("updateRoomId").value = "";
             document.getElementById("updateStartDate").value = "";
@@ -372,25 +361,6 @@ async function updateBooking() {
         showUpdateBookingMessage("Kunde inte ansluta till servern.");
     }
 }
-
-/*
-async function loadCustomersForBooking() {
-    try {
-        const response = await fetch(`${API_URL}/customers`);
-        const customers = await response.json();
-        const select = document.getElementById("customerId");
-
-        select.innerHTML = '<option value="">-- Välj kund --</option>';
-        customers.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c.id;
-            opt.textContent = `${c.firstName} ${c.lastName}`;
-            select.appendChild(opt);
-        });
-    } catch (e) {
-        console.error("Kunde inte ladda kunder till bokningslistan", e);
-    }
-}*/
 
 async function loadRoomsForBooking() {
     try {
@@ -415,7 +385,6 @@ function showUpdateMessage(text, isError = true) {
     el.innerHTML = text;
     el.className = isError ? "mt-3 text-center text-danger fw-medium" : "mt-3 text-center text-success fw-medium";
 }
-
 
 async function fetchCustomerForUpdate() {
     showUpdateMessage("", false);
@@ -454,11 +423,9 @@ async function fetchCustomerForUpdate() {
     }
 }
 
-
 async function updateCustomer() {
     showUpdateMessage("", false);
 
-    // Vi läser av e-posten direkt från sökfältet
     const email = document.getElementById("updateSearchEmail").value.trim();
 
     const updateRequest = {
@@ -473,7 +440,7 @@ async function updateCustomer() {
     }
 
     try {
-        // Anropar din e-post-endpoint: /api/customers/email/{email}
+       
         const response = await fetch(`${API_URL}/customers/email/${email}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -481,10 +448,9 @@ async function updateCustomer() {
         });
 
         if (response.ok) {
-            // Om din backend skickar tillbaka den uppdaterade kunden som JSON läser vi av den här
+            
             const data = await response.json();
 
-            // 1. Bygg meddelandet med de nya uppgifterna
             const successMessage = `Kunduppgifterna har uppdaterats!
             
             Förnamn: ${data.firstName}
@@ -492,20 +458,16 @@ async function updateCustomer() {
             E-post: ${email}
             Telefon: ${data.phone || "Ej angivet"}`;
 
-            // 2. Skicka in texten i modalens body
             document.getElementById("updateCustomerModalBody").innerHTML = successMessage;
 
-            // 3. Öppna din nya gula uppdaterings-modal på skärmen
             const myModal = new bootstrap.Modal(document.getElementById('updateCustomerModal'));
             myModal.show();
-
-            // Lås fälten igen så det ser snyggt och sparat ut
+ 
             document.getElementById("updateFirstName").disabled = true;
             document.getElementById("updateLastName").disabled = true;
             document.getElementById("updatePhone").disabled = true;
             document.getElementById("updateSubmitBtn").disabled = true;
 
-            // Töm sökfältet så man kan göra en ny sökning
             document.getElementById("updateSearchEmail").value = "";
 
             return;
@@ -520,10 +482,8 @@ async function updateCustomer() {
     }
 }
 
-// Global variabel för att hålla koll på vilken e-post som ska raderas mellan de två stegen
 let emailToDelete = "";
 
-// 1. Öppnar bekräftelse-popupen
 function deleteCustomer() {
     showDeleteMessage("", false);
 
@@ -534,38 +494,32 @@ function deleteCustomer() {
         return;
     }
 
-    // Spara undan e-posten i vår globala variabel så nästa funktion kommer åt den
     emailToDelete = email;
 
-    // Skriv ut e-posten i popup-rutan så användaren ser vem som raderas
     document.getElementById("deleteConfirmEmailText").textContent = email;
 
-    // Öppna den nya varnings-modalen
     const confirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
     confirmModal.show();
 }
 
-// 2. Körs när användaren klickar på "Ja, radera permanent" inuti popupen
 async function executeDeleteCustomer() {
-    // Stäng varnings-modalen direkt
+
     const confirmModalEl = document.getElementById('deleteConfirmModal');
     const modalInstance = bootstrap.Modal.getInstance(confirmModalEl);
     if (modalInstance) modalInstance.hide();
 
     try {
-        // Skicka DELETE-anrop till din backend
         const response = await fetch(`${API_URL}/customers/email/${emailToDelete}`, {
             method: 'DELETE'
         });
 
         if (response.ok) {
             showDeleteMessage("🎉 Kunden har raderats från systemet med framgång!", false);
-            document.getElementById("deleteEmail").value = ""; // Töm textrutan på sidan
-            emailToDelete = ""; // Nollställ variabeln
+            document.getElementById("deleteEmail").value = ""; 
+            emailToDelete = ""; 
             return;
         }
 
-        // Om kunden inte fanns eller något annat fel uppstod på servern
         const errorData = await response.json();
         showDeleteMessage(`Fel: ${errorData.message || "Kunde inte radera kunden."}`);
 
@@ -582,7 +536,6 @@ async function findBookingsByEmail() {
     const list = document.getElementById("customerBookingsList");
     const messageEl = document.getElementById("email-search-message");
 
-    // Återställ tidigare sökning
     list.innerHTML = "";
     messageEl.innerHTML = "";
     messageEl.className = "mt-2 text-center small fw-medium";
@@ -611,21 +564,17 @@ async function findBookingsByEmail() {
             return;
         }
 
-        // Töm laddnings-texten och fyll på med riktiga bokningar
         list.innerHTML = "";
         bookings.forEach(b => {
             const li = document.createElement("li");
 
-            // Sätt röd/grön färg på kanten beroende på om bokningen är aktiv eller avbokad
             const statusBadgeColor = b.status === "ACTIVE" ? "bg-success" : "bg-danger";
             const statusText = b.status === "ACTIVE" ? "Aktiv" : "Avbokad";
 
-            // Skapa text för extrasäng baserat på boolean-värdet
             const extraBedText = b.extraBedIncluded
                 ? '<span class="badge bg-info text-dark ms-1">🛏️ Extrasäng: Ja</span>'
                 : '<span class="badge bg-light text-muted ms-1">🛏️ Extrasäng: Nej</span>';
 
-            // Skapa en badge för rumstypen (Enkelrum, Dubbelrum etc.) från din Java-enum
             const bedTypeBadge = b.bedType
                 ? `<span class="badge bg-secondary text-white">${b.bedType}</span>`
                 : '';
@@ -657,7 +606,6 @@ async function findBookingsByEmail() {
     }
 }
 
-// 1. Öppnar bekräftelse-popupen för bokningen
 function deleteBooking() {
     showDeleteBookingMessage("", false);
 
@@ -675,14 +623,12 @@ function deleteBooking() {
     confirmModal.show();
 }
 
-// Körs när man klickar på "Ja, avboka permanent" i modalen
 async function executeDeleteBooking() {
     const confirmModalEl = document.getElementById('deleteBookingConfirmModal');
     const modalInstance = bootstrap.Modal.getInstance(confirmModalEl);
     if (modalInstance) modalInstance.hide();
 
     try {
-        // ÄNDRAT: Skickar nu PATCH till /api/bookings/{id}/cancel
         const response = await fetch(`${API_URL}/bookings/${bookingIdToDelete}/cancel`, {
             method: 'PATCH',
             headers: {
@@ -693,7 +639,6 @@ async function executeDeleteBooking() {
         const data = await response.json();
 
         if (response.ok) {
-            // Bokningen lyckades avbokas och vi har tillgång till det uppdaterade objektet (data)
             showDeleteBookingMessage(`🎉 Bokningen (ID: ${data.id}) har avbokats! Status är nu: Avbokad.`, false);
             document.getElementById("deleteBookingId").value = "";
             bookingIdToDelete = "";
