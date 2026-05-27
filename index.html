@@ -139,6 +139,70 @@
                     </div>
                 </div>
 
+                <div class="card shadow-sm mb-5">
+                    <div class="card-header bg-warning text-dark py-3">
+                        <h2 class="h5 mb-0 text-center fw-bold">Ändra bokningsdatum / Extrasäng</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Sök bokning för redigering</label>
+                            <div class="input-group">
+                                <input type="number" id="searchBookingId" class="form-control"
+                                    placeholder="Ange Boknings-ID...">
+                                <button class="btn btn-primary" type="button" onclick="findBookingForUpdate()">Hitta
+                                    bokning</button>
+                            </div>
+                        </div>
+
+                        <div id="updateSection" style="display: none;">
+                            <hr>
+                            <h3>Ändrar bokning: <span id="displayBookingId"></span></h3>
+
+                            <input type="hidden" id="updateBookingId">
+
+                            <div class="mb-3">
+                                <label for="updateRoomId" class="form-label fw-semibold">Nytt Rums-ID</label>
+                                <input type="number" id="updateRoomId" class="form-control" placeholder="Valfritt...">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="updateStartDate" class="form-label fw-semibold">Incheckning</label>
+                                    <input type="date" id="updateStartDate" class="form-control">
+                                </div>
+                                <div class="col">
+                                    <label for="updateEndDate" class="form-label fw-semibold">Utcheckning</label>
+                                    <input type="date" id="updateEndDate" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-check form-switch mb-4">
+                                <input class="form-check-input" type="checkbox" id="updateExtraBedRequested">
+                                <label class="form-check-label fw-semibold" for="updateExtraBedRequested">Begär
+                                    extrasäng</label>
+                            </div>
+
+                            <button onclick="updateBooking()" class="btn btn-success w-100 py-2 fw-bold">Spara
+                                ändringar</button>
+                            <div id="update-booking-message" class="mt-3 text-center fw-medium"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card shadow-sm mb-5">
+                    <div class="card-header bg-danger text-white py-3">
+                        <h2 class="h5 mb-0 text-center fw-bold">Avboka / Ta bort bokning</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label for="deleteBookingId" class="form-label fw-semibold">Ange Boknings-ID</label>
+                            <input type="number" id="deleteBookingId" class="form-control" placeholder="t.ex. 102">
+                        </div>
+
+                        <button onclick="deleteBooking()" class="btn btn-danger w-100 py-2 fw-bold">
+                            Avboka reservation permanent
+                        </button>
+                        <div id="delete-booking-message" class="mt-3 text-center fw-medium"></div>
+                    </div>
+                </div>
+
                 <div class="card shadow-sm">
                     <div class="card-header bg-dark text-white text-center py-3">
                         <h2 class="h5 mb-0">Sök lediga rum</h2>
@@ -205,25 +269,28 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteConfirmModalLabel">⚠️ Varning: Radera kund?</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Är du helt säker på och vill radera kunden med e-postadressen:
-                <p class="fw-bold text-danger mt-2" id="deleteConfirmEmailText"></p>
-                Denna åtgärd går inte att ångra.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                <button type="button" class="btn btn-danger fw-bold" onclick="executeDeleteCustomer()">Ja, radera permanent</button>
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">⚠️ Varning: Radera kund?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Är du helt säker på och vill radera kunden med e-postadressen:
+                    <p class="fw-bold text-danger mt-2" id="deleteConfirmEmailText"></p>
+                    Denna åtgärd går inte att ångra.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn btn-danger fw-bold" onclick="executeDeleteCustomer()">Ja, radera
+                        permanent</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
     <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -232,7 +299,28 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="bookingModalBody" style="white-space: pre-line;">
+                <div class="modal-body">
+                    <div id="bookingModalBody" style="white-space: pre-line;"></div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-outline-dark fw-bold" id="copyBookingIdBtn"
+                        onclick="copyCreatedBookingId()">
+                        📋 Kopiera Boknings-ID
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="updateBookingModal" tabindex="-1" aria-labelledby="updateBookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="updateBookingModalLabel">✨ Bokning uppdaterad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="updateBookingModalBody" style="white-space: pre-line;"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
@@ -240,9 +328,30 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="deleteBookingConfirmModal" tabindex="-1"
+        aria-labelledby="deleteBookingConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteBookingConfirmModalLabel">Varning: Avboka?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Är du helt säker på att du vill ta bort bokningen med ID:
+                    <span class="fw-bold text-danger" id="deleteConfirmBookingIdText"></span>?
+                    <br><br>Rummet kommer omedelbart att bli ledigt för andra gäster.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="button" class="btn btn-danger fw-bold" onclick="executeDeleteBooking()">Ja, avboka
+                        permanent</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
-</body>
 </body>
 
 </html>
