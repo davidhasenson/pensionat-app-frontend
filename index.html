@@ -110,7 +110,7 @@
                     <div class="card-body p-4">
                         <div class="mb-3">
                             <label for="customerEmail" class="form-label fw-semibold">Kundens e-postadress</label>
-                            <input type="email" id="customerEmail" class="form-control" placeholder="namn@företag.se">
+                            <input type="email" id="customerEmail" class="form-control" placeholder="namn@test.se">
                         </div>
                         <div class="mb-3">
                             <label for="roomId" class="form-label fw-semibold">Rum</label>
@@ -184,6 +184,27 @@
                                 ändringar</button>
                             <div id="update-booking-message" class="mt-3 text-center fw-medium"></div>
                         </div>
+                    </div>
+                </div>
+                <div class="card shadow-sm mb-5">
+                    <div class="card-header bg-dark text-white py-3">
+                        <h2 class="h5 mb-0 text-center fw-bold">Sök bokningar via e-post</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label for="searchCustomerBookingsEmail" class="form-label fw-semibold">Ange kundens
+                                e-postadress</label>
+                            <div class="input-group">
+                                <input type="email" id="searchCustomerBookingsEmail" class="form-control"
+                                    placeholder="namn@test.com">
+                                <button class="btn btn-primary" type="button" onclick="findBookingsByEmail()">Sök
+                                    bokningar</button>
+                            </div>
+                        </div>
+                        <div id="email-search-message" class="mt-2 text-center small fw-medium"></div>
+
+                        <ul id="customerBookingsList" class="list-group mt-3">
+                        </ul>
                     </div>
                 </div>
                 <div class="card shadow-sm mb-5">
@@ -312,7 +333,8 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="updateBookingModal" tabindex="-1" aria-labelledby="updateBookingModalLabel" aria-hidden="true">
+    <div class="modal fade" id="updateBookingModal" tabindex="-1" aria-labelledby="updateBookingModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">

@@ -273,7 +273,7 @@ function copyCreatedBookingId() {
 async function findBookingForUpdate() {
     const id = document.getElementById("searchBookingId").value.trim();
     const updateSection = document.getElementById("updateSection");
-    
+
     if (!id) {
         alert("Du måste ange ett Boknings-ID!");
         return;
@@ -281,21 +281,21 @@ async function findBookingForUpdate() {
 
     try {
         const response = await fetch(`${API_URL}/bookings/${id}`);
-        
+
         if (response.ok) {
             const booking = await response.json();
-            
+
             updateSection.style.display = "block";
-            
+
             document.getElementById("updateBookingId").value = booking.id;
             document.getElementById("updateStartDate").value = booking.startDate;
             document.getElementById("updateEndDate").value = booking.endDate;
             document.getElementById("updateExtraBedRequested").checked = booking.extraBedIncluded;
-      
+
             document.getElementById("updateRoomId").value = booking.roomId || "";
-      
+
             document.getElementById("displayBookingId").textContent = `#${booking.id}`;
-            
+
             showUpdateBookingMessage("Bokning hittad! Ändra detaljerna nedan och spara.", false);
         } else {
             updateSection.style.display = "none";
@@ -345,7 +345,7 @@ async function updateBooking() {
             Gäst: ${data.customerFirstName || ""} ${data.customerLastName || ""}
             E-post: ${data.customerEmail}
             ${data.extraBedIncluded ? "Extrasäng: Ja" : "Extrasäng: Nej"}`;
-            
+
             // 2. Skicka in texten i modalens body
             document.getElementById("updateBookingModalBody").innerHTML = successMessage;
 
@@ -361,7 +361,7 @@ async function updateBooking() {
             document.getElementById("updateExtraBedRequested").checked = false;
             document.getElementById("searchBookingId").value = "";
             document.getElementById("updateSection").style.display = "none";
-            
+
             return;
         }
 
@@ -576,6 +576,86 @@ async function executeDeleteCustomer() {
 }
 
 let bookingIdToDelete = "";
+
+async function findBookingsByEmail() {
+    const email = document.getElementById("searchCustomerBookingsEmail").value.trim();
+    const list = document.getElementById("customerBookingsList");
+    const messageEl = document.getElementById("email-search-message");
+
+    // Återställ tidigare sökning
+    list.innerHTML = "";
+    messageEl.innerHTML = "";
+    messageEl.className = "mt-2 text-center small fw-medium";
+
+    if (!email) {
+        messageEl.innerHTML = "Fel: Du måste ange en e-postadress!";
+        messageEl.classList.add("text-danger");
+        return;
+    }
+
+    try {
+        list.innerHTML = '<li class="list-group-item text-muted py-2">Söker efter bokningar...</li>';
+
+        const response = await fetch(`${API_URL}/bookings/by-email?email=${email}`);
+        const bookings = await response.json();
+
+        if (!response.ok) {
+            messageEl.innerHTML = `Fel: ${bookings.message || "Kunde inte hämta bokningar."}`;
+            messageEl.classList.add("text-danger");
+            list.innerHTML = "";
+            return;
+        }
+
+        if (bookings.length === 0) {
+            list.innerHTML = '<li class="list-group-item text-warning py-3 fw-medium">Inga bokningar hittades på denna e-postadress.</li>';
+            return;
+        }
+
+        // Töm laddnings-texten och fyll på med riktiga bokningar
+        list.innerHTML = "";
+        bookings.forEach(b => {
+            const li = document.createElement("li");
+
+            // Sätt röd/grön färg på kanten beroende på om bokningen är aktiv eller avbokad
+            const statusBadgeColor = b.status === "ACTIVE" ? "bg-success" : "bg-danger";
+            const statusText = b.status === "ACTIVE" ? "Aktiv" : "Avbokad";
+
+            // Skapa text för extrasäng baserat på boolean-värdet
+            const extraBedText = b.extraBedIncluded
+                ? '<span class="badge bg-info text-dark ms-1">🛏️ Extrasäng: Ja</span>'
+                : '<span class="badge bg-light text-muted ms-1">🛏️ Extrasäng: Nej</span>';
+
+            // Skapa en badge för rumstypen (Enkelrum, Dubbelrum etc.) från din Java-enum
+            const bedTypeBadge = b.bedType
+                ? `<span class="badge bg-secondary text-white">${b.bedType}</span>`
+                : '';
+
+            li.className = "list-group-item d-flex justify-content-between align-items-center py-3";
+            li.innerHTML = `
+        <div class="text-start">
+            <span class="fw-bold d-block mb-1">
+                Boknings-ID: ${b.id} — <span class="text-primary">Rum ${b.roomNumber}</span>
+            </span>
+            <div class="mb-2">
+                <small class="text-muted d-block">📅 Datum: ${b.startDate} till ${b.endDate}</small>
+            </div>
+            <div class="mt-2 d-flex gap-1">
+                ${bedTypeBadge}
+                ${extraBedText}
+            </div>
+        </div>
+        <div class="text-end">
+            <span class="badge ${statusBadgeColor} d-block mb-2">${statusText}</span>
+        </div>
+    `;
+            list.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error("Nätverksfel vid sökning av bokningar:", error);
+        list.innerHTML = '<li class="list-group-item text-danger py-2">Kunde inte ansluta till servern.</li>';
+    }
+}
 
 // 1. Öppnar bekräftelse-popupen för bokningen
 function deleteBooking() {
