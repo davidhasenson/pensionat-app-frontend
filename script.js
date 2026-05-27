@@ -93,7 +93,7 @@ async function createCustomer() {
             document.getElementById("email").value = "";
             document.getElementById("phone").value = "";
 
-            loadCustomersForBooking();
+           
             return;
         }
 
