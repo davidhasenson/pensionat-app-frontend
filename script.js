@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8080/api';
+const BOOKING_API = 'http://localhost:8080/api'
+const CUSTOMER_API= 'http://localhost:8081/api'
 
 
 
@@ -67,7 +68,7 @@ async function createCustomer() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/customers`, {
+        const response = await fetch(`${CUSTOMER_API}/customers`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(customer)
@@ -119,7 +120,7 @@ async function searchAvailableRooms() {
     try {
         list.innerHTML = '<li class="list-group-item text-muted py-3">Letar efter lediga rum...</li>';
 
-        const response = await fetch(`${API_URL}/rooms/available?startDate=${startEl.value}&endDate=${endEl.value}`);
+        const response = await fetch(`${BOOKING_API}/rooms/available?startDate=${startEl.value}&endDate=${endEl.value}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -190,7 +191,7 @@ async function createBooking() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/bookings`, {
+        const response = await fetch(`${BOOKING_API}/bookings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(booking)
@@ -272,7 +273,7 @@ async function findBookingForUpdate() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/bookings/${id}`);
+        const response = await fetch(`${BOOKING_API}/bookings/${id}`);
 
         if (response.ok) {
             const booking = await response.json();
@@ -318,7 +319,7 @@ async function updateBooking() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/bookings/${bookingId}`, {
+        const response = await fetch(`${BOOKING_API}/bookings/${bookingId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData)
@@ -364,7 +365,7 @@ async function updateBooking() {
 
 async function loadRoomsForBooking() {
     try {
-        const response = await fetch(`${API_URL}/rooms`);
+        const response = await fetch(`${BOOKING_API}/rooms`);
         const rooms = await response.json();
         const select = document.getElementById("roomId");
 
@@ -396,7 +397,7 @@ async function fetchCustomerForUpdate() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/customers/by-email?email=${email}`);
+        const response = await fetch(`${CUSTOMER_API}/customers/by-email?email=${email}`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -441,7 +442,7 @@ async function updateCustomer() {
 
     try {
        
-        const response = await fetch(`${API_URL}/customers/email/${email}`, {
+        const response = await fetch(`${CUSTOMER_API}/customers/email/${email}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateRequest)
@@ -509,7 +510,7 @@ async function executeDeleteCustomer() {
     if (modalInstance) modalInstance.hide();
 
     try {
-        const response = await fetch(`${API_URL}/customers/email/${emailToDelete}`, {
+        const response = await fetch(`${CUSTOMER_API}/customers/email/${emailToDelete}`, {
             method: 'DELETE'
         });
 
@@ -549,7 +550,7 @@ async function findBookingsByEmail() {
     try {
         list.innerHTML = '<li class="list-group-item text-muted py-2">Söker efter bokningar...</li>';
 
-        const response = await fetch(`${API_URL}/bookings/by-email?email=${email}`);
+        const response = await fetch(`${BOOKING_API}/bookings/by-email?email=${email}`);
         const bookings = await response.json();
 
         if (!response.ok) {
@@ -629,7 +630,7 @@ async function executeDeleteBooking() {
     if (modalInstance) modalInstance.hide();
 
     try {
-        const response = await fetch(`${API_URL}/bookings/${bookingIdToDelete}/cancel`, {
+        const response = await fetch(`${BOOKING_API}/bookings/${bookingIdToDelete}/cancel`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
