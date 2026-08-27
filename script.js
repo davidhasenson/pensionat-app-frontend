@@ -1,5 +1,6 @@
 const BOOKING_API = "http://localhost:8080/api";
 const CUSTOMER_API = "http://localhost:8081/api";
+const REVIEW_API = "http://localhost:8082/api"
 
 function showCustomerMessage(text, isError = true) {
   const el = document.getElementById("customer-message");
@@ -43,6 +44,14 @@ function showDeleteBookingMessage(text, isError = true) {
 
 function showUpdateBookingMessage(text, isError = true) {
   const el = document.getElementById("update-booking-message");
+  el.innerHTML = text;
+  el.className = isError
+    ? "mt-3 text-center text-danger fw-medium"
+    : "mt-3 text-center text-success fw-medium";
+}
+
+function showReviewMessage(text, isError = true) {
+  const el = document.getElementById("review-message");
   el.innerHTML = text;
   el.className = isError
     ? "mt-3 text-center text-danger fw-medium"
@@ -744,6 +753,52 @@ async function executeDeleteBooking() {
     showDeleteBookingMessage("Kunde inte ansluta till servern.");
   }
 }
+
+async function submitReview() {
+  showReviewMessage("", false);
+
+  const roomId = document.getElementById("reviewRoomId").value;
+  const rating = document.getElementById("reviewRating").value;
+  const reviewText = document.getElementById("reviewComment").value.trim();
+  const reviewDate = new Date().toISOString().split('T')[0];
+
+  if (!roomId || !rating) {
+    showReviewMessage("Fel: Välj ett rum och ange ett betyg")
+    return;
+  }
+
+  try{
+    const response = await fetch(REVIEW_API + "/reviews", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        roomId: parseInt(roomId),
+        rating : parseInt(rating),
+        reviewText,
+        reviewDate
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok){
+      showReviewMessage ("🎉 Tack för din recension!", false);
+
+      document.getElementById("reviewRating").value ="";
+      document.getElementById("reviewComment").value = "";
+
+      loadReviewsForRoom(roomId);
+      return;
+    }
+
+  showReviewMessage(`Fel: ${data.message || "Kunde inte skicka recensionen."}`);
+
+  }catch (error){
+    console.error("Nätverksfel vid recension:", error);
+    showReviewMessage("Kunde inte ansluta till servern.");
+  }
+}
+
 function formatBedType(bedType) {
   switch (bedType) {
     case "SINGLE_BED":
