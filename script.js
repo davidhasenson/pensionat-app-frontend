@@ -877,5 +877,5 @@ function formatBedType(bedType) {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadRoomsForBooking();
-  loadReviewsForRoom();
+  loadRoomsForReview();
 });
