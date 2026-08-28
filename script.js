@@ -839,7 +839,28 @@ async function loadReviewsForRoom(roomId) {
     console.error("Nätverksfel kunde inte hämta recensioner");
     reviewListDiv.innerHTML = "Något gick fel vid hämtning av recensioner";
   }
-} 
+}
+
+async function loadRoomsForReview() {
+  try {
+    const response = await fetch(BOOKING_API + "/rooms");
+    const rooms = await (response).json()
+    const select = document.getElementById("reviewRoomId");
+    
+    select.innerHTML = '<option value="">--Välj Rum--</option>';
+
+    rooms.forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = `Rum ${r.roomNumber} (${formatBedType(r.bedType)})`;
+
+      select.appendChild(opt);
+      
+    });
+  } catch (error) {
+    console.error("Kunde inte ladda rum till recensionslistan", error);
+  }
+}
 
 function formatBedType(bedType) {
   switch (bedType) {
@@ -856,4 +877,5 @@ function formatBedType(bedType) {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadRoomsForBooking();
+  loadReviewsForRoom();
 });
