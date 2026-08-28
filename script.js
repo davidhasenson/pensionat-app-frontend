@@ -758,6 +758,7 @@ async function submitReview() {
   showReviewMessage("", false);
 
   const roomId = document.getElementById("reviewRoomId").value;
+  const reviewerName = document.getElementById("reviewerName").value.trim();
   const rating = document.getElementById("reviewRating").value;
   const reviewText = document.getElementById("reviewComment").value.trim();
   const reviewDate = new Date().toISOString().split('T')[0];
@@ -773,6 +774,7 @@ async function submitReview() {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
         roomId: parseInt(roomId),
+        reviewerName,
         rating : parseInt(rating),
         reviewText,
         reviewDate
@@ -784,6 +786,7 @@ async function submitReview() {
     if (response.ok){
       showReviewMessage ("🎉 Tack för din recension!", false);
 
+      document.getElementById("reviewerName").value = "";
       document.getElementById("reviewRating").value ="";
       document.getElementById("reviewComment").value = "";
 
@@ -798,6 +801,45 @@ async function submitReview() {
     showReviewMessage("Kunde inte ansluta till servern.");
   }
 }
+
+async function loadReviewsForRoom(roomId) {
+  const reviewListDiv = document.getElementById("reviewsList");
+  reviewListDiv.innerHTML = "Laddar recensioner..."
+  
+  try {
+    const response = await fetch(REVIEW_API + "/reviews/room/" + roomId);
+
+    if (!response.ok) {
+      reviewListDiv.innerHTML = "Kunda inte Hämta recensioner.";
+      return;
+    }
+
+    const reviews = await response.json();
+
+    if (reviews.length === 0) {
+      reviewListDiv.innerHTML = "Inga recensioner än för det här rummet.";
+      return;
+    }
+
+    const html = reviews
+      .map(
+        (review) => `
+      <div class="review-card">
+        👤 ${review.reviewerName || "Anonym"} 
+        ⭐ ${review.rating}/5
+        📅 ${review.reviewDate}
+        💬 ${review.reviewText}
+      </div>
+    `,
+      )
+      .join("");
+
+    reviewListDiv.innerHTML = html;
+  } catch (error) {
+    console.error("Nätverksfel kunde inte hämta recensioner");
+    reviewListDiv.innerHTML = "Något gick fel vid hämtning av recensioner";
+  }
+} 
 
 function formatBedType(bedType) {
   switch (bedType) {
