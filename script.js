@@ -1,6 +1,54 @@
 const BOOKING_API = "http://localhost:8080/api";
 const CUSTOMER_API = "http://localhost:8081/api";
 const REVIEW_API = "http://localhost:8082/api"
+const AUTH_URL = "http://localhost:8081";
+
+async function loginUser(username, password) {
+  const body = { username: username, password: password };
+  
+  try {
+    const response = await fetch(AUTH_URL + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (response.ok) {
+      const token = await response.text();
+      sessionStorage.setItem('jwt', token);
+      showLoginMessage("Du är nu inloggad", false);
+
+    } else {
+      showLoginMessage("Fel användarnamn eller lösenord");
+    }
+  } catch (error) {
+    console.error("Nätverksfel: ", error);
+    showLoginMessage("Kunde inte ansluta till servern");
+  }
+}
+
+function getAuthHeaders() {
+  const token = sessionStorage.getItem('jwt');
+
+  return {
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  };
+}
+
+async function logout() {
+  sessionStorage.removeItem('jwt');
+  document.getElementById("loginSection").style.display = "block";
+  document.getElementById("mainContent").style.display = "none";
+}
+
+function showLoginMessage(text, isError = true) {
+  const el = document.getElementById("login-message");
+  el.innerHTML = text;
+  el.className = isError
+    ? "mt-3 text-center text-danger fw-medium"
+    : "mt-3 text-center text-success fw-medium";
+}
 
 function showCustomerMessage(text, isError = true) {
   const el = document.getElementById("customer-message");
@@ -810,7 +858,7 @@ async function loadReviewsForRoom(roomId) {
     const response = await fetch(REVIEW_API + "/reviews/room/" + roomId);
 
     if (!response.ok) {
-      reviewListDiv.innerHTML = "Kunda inte Hämta recensioner.";
+      reviewListDiv.innerHTML = "Kunde inte hämta recensioner.";
       return;
     }
 
