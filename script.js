@@ -144,6 +144,8 @@ async function createCustomer() {
     password: document.getElementById("newPassword").value,
   };
 
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
   if (
     !customer.firstName ||
     !customer.lastName ||
@@ -153,6 +155,11 @@ async function createCustomer() {
     !customer.password
   ) {
     showCustomerMessage("Fel: Alla fält måste fyllas i!");
+    return;
+  }
+
+  if (customer.password !== confirmPassword) {
+    showCustomerMessage("Fel: Lösenorden matchar inte!");
     return;
   }
 
@@ -200,11 +207,12 @@ async function createCustomer() {
       document.getElementById("phone").value = "";
       document.getElementById("newUsername").value = "";
       document.getElementById("newPassword").value = "";
-
+      document.getElementById("confirmPassword").value = ""; 
+      
       const modalEl = document.getElementById("registerModal");
       const modalInstance = bootstrap.Modal.getInstance(modalEl);
       if (modalInstance) modalInstance.hide();
-      
+
       return;
     }
 
@@ -324,7 +332,7 @@ async function createBooking() {
   try {
     const response = await fetch(`${BOOKING_API}/bookings`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(booking),
     });
 
@@ -413,11 +421,12 @@ async function findBookingForUpdate() {
   }
 
   try {
-    const response = await fetch(`${BOOKING_API}/bookings/${id}`);
+    const response = await fetch(`${BOOKING_API}/bookings/${id}`, {
+      headers: getAuthHeaders(),
+    });
 
     if (response.ok) {
       const booking = await response.json();
-
       updateSection.style.display = "block";
 
       document.getElementById("updateBookingId").value = booking.id;
@@ -425,9 +434,7 @@ async function findBookingForUpdate() {
       document.getElementById("updateEndDate").value = booking.endDate;
       document.getElementById("updateExtraBedRequested").checked =
         booking.extraBedIncluded;
-
       document.getElementById("updateRoomId").value = booking.roomId || "";
-
       document.getElementById("displayBookingId").textContent =
         `#${booking.id}`;
 
@@ -474,7 +481,7 @@ async function updateBooking() {
   try {
     const response = await fetch(`${BOOKING_API}/bookings/${bookingId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updateData),
     });
 
@@ -557,6 +564,9 @@ async function fetchCustomerForUpdate() {
   try {
     const response = await fetch(
       `${CUSTOMER_API}/customers/by-email?email=${email}`,
+      {
+        headers: getAuthHeaders(),
+      },
     );
 
     if (!response.ok) {
@@ -605,7 +615,7 @@ async function updateCustomer() {
   try {
     const response = await fetch(`${CUSTOMER_API}/customers/email/${email}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updateRequest),
     });
 
@@ -679,6 +689,7 @@ async function executeDeleteCustomer() {
       `${CUSTOMER_API}/customers/email/${emailToDelete}`,
       {
         method: "DELETE",
+        headers: getAuthHeaders(),
       },
     );
 
@@ -727,6 +738,9 @@ async function findBookingsByEmail() {
 
     const response = await fetch(
       `${BOOKING_API}/bookings/by-email?email=${email}`,
+      {
+        headers: getAuthHeaders(),
+      },
     );
     const bookings = await response.json();
 
@@ -816,9 +830,7 @@ async function executeDeleteBooking() {
       `${BOOKING_API}/bookings/${bookingIdToDelete}/cancel`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
       },
     );
 
