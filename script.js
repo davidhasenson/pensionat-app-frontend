@@ -1,6 +1,80 @@
 const BOOKING_API = "http://localhost:8080/api";
 const CUSTOMER_API = "http://localhost:8081/api";
-const REVIEW_API = "http://localhost:8082/api"
+const REVIEW_API = "http://localhost:8082/api";
+const AUTH_URL = "http://localhost:8081";
+
+async function loginUser(username, password) {
+  const body = { username: username, password: password };
+
+  try {
+    const response = await fetch(AUTH_URL + "/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (response.ok) {
+      const token = await response.text();
+      sessionStorage.setItem("jwt", token);
+      showLoginMessage("Du är nu inloggad", false);
+      updateAuthUI();
+
+      const modalEl = document.getElementById("loginModal");
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      if (modalInstance) modalInstance.hide();
+    } else {
+      showLoginMessage("Fel användarnamn eller lösenord");
+    }
+  } catch (error) {
+    console.error("Nätverksfel: ", error);
+    showLoginMessage("Kunde inte ansluta till servern");
+  }
+}
+
+function getAuthHeaders() {
+  const token = sessionStorage.getItem("jwt");
+
+  return {
+    Authorization: "Bearer " + token,
+    "Content-Type": "application/json",
+  };
+}
+
+async function updateAuthUI() {
+  const loggedIn = sessionStorage.getItem("jwt") !== null;
+
+  document.getElementById("loginBtn").style.display = loggedIn
+    ? "none"
+    : "inline-block";
+  document.getElementById("kunderTabItem").style.display = loggedIn
+    ? "block"
+    : "none";
+  document.getElementById("bokningarTabItem").style.display = loggedIn
+    ? "block"
+    : "none";
+  document.getElementById("logoutBtn").style.display = loggedIn
+    ? "inline-block"
+    : "none";
+  document.getElementById("reviewFormFields").style.display = loggedIn
+    ? "block"
+    : "none";
+  document.getElementById("reviewLoginPrompt").style.display = loggedIn
+    ? "none"
+    : "block";
+}
+
+async function logout() {
+  sessionStorage.removeItem("jwt");
+  updateAuthUI();
+}
+
+function showLoginMessage(text, isError = true) {
+  const el = document.getElementById("login-message");
+  el.innerHTML = text;
+  el.className = isError
+    ? "mt-3 text-center text-danger fw-medium"
+    : "mt-3 text-center text-success fw-medium";
+}
 
 function showCustomerMessage(text, isError = true) {
   const el = document.getElementById("customer-message");
@@ -66,15 +140,26 @@ async function createCustomer() {
     lastName: document.getElementById("lastName").value.trim(),
     email: document.getElementById("email").value.trim(),
     phone: document.getElementById("phone").value.trim(),
+    username: document.getElementById("newUsername").value.trim(),
+    password: document.getElementById("newPassword").value,
   };
+
+  const confirmPassword = document.getElementById("confirmPassword").value;
 
   if (
     !customer.firstName ||
     !customer.lastName ||
     !customer.email ||
-    !customer.phone
+    !customer.phone ||
+    !customer.username ||
+    !customer.password
   ) {
     showCustomerMessage("Fel: Alla fält måste fyllas i!");
+    return;
+  }
+
+  if (customer.password !== confirmPassword) {
+    showCustomerMessage("Fel: Lösenorden matchar inte!");
     return;
   }
 
@@ -120,6 +205,13 @@ async function createCustomer() {
       document.getElementById("lastName").value = "";
       document.getElementById("email").value = "";
       document.getElementById("phone").value = "";
+      document.getElementById("newUsername").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("confirmPassword").value = ""; 
+      
+      const modalEl = document.getElementById("registerModal");
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      if (modalInstance) modalInstance.hide();
 
       return;
     }
@@ -167,18 +259,21 @@ async function searchAvailableRooms() {
     list.innerHTML = "";
     data.forEach((room) => {
       const li = document.createElement("li");
-      li.className =
-        "list-group-item d-flex justify-content-between align-items-center fw-medium py-3 ps-4 pe-3";
+      li.className = "list-group-item fw-medium py-3 ps-4 pe-3";
 
       li.innerHTML = `
-                <div class="text-start">
-                    <span class="d-block text-dark fw-bold">Rum ${room.roomNumber} (${formatBedType(room.bedType)})</span>
-                    <small class="text-muted">${room.beds} sängar — <span class="text-success fw-bold">${room.pricePerNight} kr</span>/natt</small>
-                </div>
-                <button class="btn btn-sm btn-outline-success fw-bold" onclick="selectRoomForBooking(${room.id}, '${startEl.value}', '${endEl.value}')">
-                    Välj
-                </button>
-            `;
+    <div class="d-flex justify-content-between align-items-center fw-medium">
+        <div class="text-start">
+            <span class="d-block text-dark fw-bold">Rum ${room.roomNumber} (${formatBedType(room.bedType)})</span>
+            <small class="text-muted">${room.beds} sängar — <span class="text-success fw-bold">${room.pricePerNight} kr</span>/natt</small>
+        </div>
+        <div>
+            <button onclick="toggleRoomReviews(${room.id})" class="btn btn-sm btn-outline-info fw-bold">⭐ Visa recensioner</button>
+            <button class="btn btn-sm btn-outline-success fw-bold" onclick="selectRoomForBooking(${room.id}, '${startEl.value}', '${endEl.value}')">Välj</button>
+        </div>
+    </div>
+    <div id="room-reviews-${room.id}" style="display:none" class="mt-3"></div>
+`;
       list.appendChild(li);
     });
   } catch (error) {
@@ -237,7 +332,7 @@ async function createBooking() {
   try {
     const response = await fetch(`${BOOKING_API}/bookings`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(booking),
     });
 
@@ -326,11 +421,12 @@ async function findBookingForUpdate() {
   }
 
   try {
-    const response = await fetch(`${BOOKING_API}/bookings/${id}`);
+    const response = await fetch(`${BOOKING_API}/bookings/${id}`, {
+      headers: getAuthHeaders(),
+    });
 
     if (response.ok) {
       const booking = await response.json();
-
       updateSection.style.display = "block";
 
       document.getElementById("updateBookingId").value = booking.id;
@@ -338,9 +434,7 @@ async function findBookingForUpdate() {
       document.getElementById("updateEndDate").value = booking.endDate;
       document.getElementById("updateExtraBedRequested").checked =
         booking.extraBedIncluded;
-
       document.getElementById("updateRoomId").value = booking.roomId || "";
-
       document.getElementById("displayBookingId").textContent =
         `#${booking.id}`;
 
@@ -387,7 +481,7 @@ async function updateBooking() {
   try {
     const response = await fetch(`${BOOKING_API}/bookings/${bookingId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updateData),
     });
 
@@ -470,6 +564,9 @@ async function fetchCustomerForUpdate() {
   try {
     const response = await fetch(
       `${CUSTOMER_API}/customers/by-email?email=${email}`,
+      {
+        headers: getAuthHeaders(),
+      },
     );
 
     if (!response.ok) {
@@ -518,7 +615,7 @@ async function updateCustomer() {
   try {
     const response = await fetch(`${CUSTOMER_API}/customers/email/${email}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updateRequest),
     });
 
@@ -592,6 +689,7 @@ async function executeDeleteCustomer() {
       `${CUSTOMER_API}/customers/email/${emailToDelete}`,
       {
         method: "DELETE",
+        headers: getAuthHeaders(),
       },
     );
 
@@ -640,6 +738,9 @@ async function findBookingsByEmail() {
 
     const response = await fetch(
       `${BOOKING_API}/bookings/by-email?email=${email}`,
+      {
+        headers: getAuthHeaders(),
+      },
     );
     const bookings = await response.json();
 
@@ -729,9 +830,7 @@ async function executeDeleteBooking() {
       `${BOOKING_API}/bookings/${bookingIdToDelete}/cancel`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
       },
     );
 
@@ -761,63 +860,71 @@ async function submitReview() {
   const reviewerName = document.getElementById("reviewerName").value.trim();
   const rating = document.getElementById("reviewRating").value;
   const reviewText = document.getElementById("reviewComment").value.trim();
-  const reviewDate = new Date().toISOString().split('T')[0];
+  const reviewDate = new Date().toISOString().split("T")[0];
 
   if (!roomId || !rating) {
-    showReviewMessage("Fel: Välj ett rum och ange ett betyg")
+    showReviewMessage("Fel: Välj ett rum och ange ett betyg");
     return;
   }
 
-  try{
+  try {
     const response = await fetch(REVIEW_API + "/reviews", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         roomId: parseInt(roomId),
         reviewerName,
-        rating : parseInt(rating),
+        rating: parseInt(rating),
         reviewText,
-        reviewDate
-      })
-    })
+        reviewDate,
+      }),
+    });
 
-    const data = await response.json()
+    if (response.status === 401 || response.status === 403) {
+      showReviewMessage("Du måste vara inloggad för att skriva en recension.");
+      return;
+    }
 
-    if (response.ok){
-      showReviewMessage ("🎉 Tack för din recension!", false);
+    const data = await response.json();
+
+    if (response.ok) {
+      showReviewMessage("🎉 Tack för din recension!", false);
 
       document.getElementById("reviewerName").value = "";
-      document.getElementById("reviewRating").value ="";
+      document.getElementById("reviewRating").value = "";
       document.getElementById("reviewComment").value = "";
 
       loadReviewsForRoom(roomId);
       return;
     }
 
-  showReviewMessage(`Fel: ${data.message || "Kunde inte skicka recensionen."}`);
-
-  }catch (error){
+    showReviewMessage(
+      `Fel: ${data.message || "Kunde inte skicka recensionen."}`,
+    );
+  } catch (error) {
     console.error("Nätverksfel vid recension:", error);
     showReviewMessage("Kunde inte ansluta till servern.");
   }
 }
 
-async function loadReviewsForRoom(roomId) {
-  const reviewListDiv = document.getElementById("reviewsList");
-  reviewListDiv.innerHTML = "Laddar recensioner..."
-  
+async function loadReviewsForRoom(
+  roomId,
+  container = document.getElementById("reviewsList"),
+) {
+  container.innerHTML = "Laddar recensioner...";
+
   try {
     const response = await fetch(REVIEW_API + "/reviews/room/" + roomId);
 
     if (!response.ok) {
-      reviewListDiv.innerHTML = "Kunda inte Hämta recensioner.";
+      container.innerHTML = "Kunde inte hämta recensioner.";
       return;
     }
 
     const reviews = await response.json();
 
     if (reviews.length === 0) {
-      reviewListDiv.innerHTML = "Inga recensioner än för det här rummet.";
+      container.innerHTML = "Inga recensioner än för det här rummet.";
       return;
     }
 
@@ -834,19 +941,30 @@ async function loadReviewsForRoom(roomId) {
       )
       .join("");
 
-    reviewListDiv.innerHTML = html;
+    container.innerHTML = html;
   } catch (error) {
     console.error("Nätverksfel kunde inte hämta recensioner");
-    reviewListDiv.innerHTML = "Något gick fel vid hämtning av recensioner";
+    container.innerHTML = "Något gick fel vid hämtning av recensioner";
+  }
+}
+
+async function toggleRoomReviews(roomId) {
+  const container = document.getElementById("room-reviews-" + roomId);
+
+  if (container.style.display === "none") {
+    container.style.display = "block";
+    await loadReviewsForRoom(roomId, container);
+  } else {
+    container.style.display = "none";
   }
 }
 
 async function loadRoomsForReview() {
   try {
     const response = await fetch(BOOKING_API + "/rooms");
-    const rooms = await (response).json()
+    const rooms = await response.json();
     const select = document.getElementById("reviewRoomId");
-    
+
     select.innerHTML = '<option value="">--Välj Rum--</option>';
 
     rooms.forEach((r) => {
@@ -855,7 +973,6 @@ async function loadRoomsForReview() {
       opt.textContent = `Rum ${r.roomNumber} (${formatBedType(r.bedType)})`;
 
       select.appendChild(opt);
-      
     });
   } catch (error) {
     console.error("Kunde inte ladda rum till recensionslistan", error);
@@ -876,6 +993,7 @@ function formatBedType(bedType) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  updateAuthUI();
   loadRoomsForBooking();
   loadRoomsForReview();
 });

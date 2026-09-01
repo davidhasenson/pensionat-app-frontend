@@ -19,571 +19,562 @@
           bokningar.
         </p>
       </div>
+      <div class="text-end mb-2">
+        <button
+          id="registerBtn"
+          class="btn btn-outline-primary btn-sm"
+          data-bs-toggle="modal"
+          data-bs-target="#registerModal"
+        >
+          📝 Skapa konto
+        </button>
 
-      <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-6">
-          <ul class="nav nav-tabs mb-4">
-            <li class="nav-item">
-              <a class="nav-link active" data-bs-toggle="tab" href="#rum">
-                🏠 Rum
-              </a>
-            </li>
+        <button
+          id="loginBtn"
+          class="btn btn-primary btn-sm"
+          data-bs-toggle="modal"
+          data-bs-target="#loginModal"
+        >
+          🔑 Logga in
+        </button>
 
-            <li class="nav-item">
-              <a class="nav-link" data-bs-toggle="tab" href="#kunder">
-                👤 Kunder
-              </a>
-            </li>
+        <button
+          id="logoutBtn"
+          onclick="logout()"
+          class="btn btn-outline-danger btn-sm"
+          style="display: none"
+        >
+          Logga ut
+        </button>
+      </div>
 
-            <li class="nav-item">
-              <a class="nav-link" data-bs-toggle="tab" href="#bokningar">
-                📅 Bokningar
-              </a>
-            </li>
+      <!--TAB -->
+      <div id="mainContent">
+        <div class="row justify-content-center">
+          <div class="col-12 col-md-8 col-lg-6">
+            <ul class="nav nav-tabs mb-4">
+              <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#rum">
+                  🏠 Rum
+                </a>
+              </li>
 
-            <li class="nav-item">
-              <a class="nav-link" data-bs-toggle="tab" href="#recensioner">
-                ⭐ Recensioner
-              </a>
-            </li>
-          </ul>
+              <li class="nav-item" id="kunderTabItem">
+                <a class="nav-link" data-bs-toggle="tab" href="#kunder">
+                  👤 Kunder
+                </a>
+              </li>
 
-          <div class="tab-content">
-            <!--Rum-->
-            <div class="tab-pane fade show active" id="rum">
-              <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white text-center py-3">
-                  <h2 class="h5 mb-0">Sök lediga rum</h2>
-                </div>
+              <li class="nav-item" id="bokningarTabItem">
+                <a class="nav-link" data-bs-toggle="tab" href="#bokningar">
+                  📅 Bokningar
+                </a>
+              </li>
 
-                <div class="card-body bg-light border-bottom p-3">
-                  <div class="row g-2">
-                    <div class="col-6">
-                      <label
-                        for="searchStartDate"
-                        class="form-label small fw-bold"
-                        >Incheckning</label
-                      >
-                      <input
-                        type="date"
-                        id="searchStartDate"
-                        class="form-control"
-                      />
-                    </div>
-                    <div class="col-6">
-                      <label
-                        for="searchEndDate"
-                        class="form-label small fw-bold"
-                        >Utcheckning</label
-                      >
-                      <input
-                        type="date"
-                        id="searchEndDate"
-                        class="form-control"
-                      />
-                    </div>
-                    <div class="col-12 mt-2">
-                      <button
-                        onclick="searchAvailableRooms()"
-                        class="btn btn-dark w-100 fw-bold"
-                      >
-                        🔍 Sök tillgängliga rum
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    id="search-message"
-                    class="mt-2 text-center small fw-medium"
-                  ></div>
-                </div>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#recensioner">
+                  ⭐ Recensioner
+                </a>
+              </li>
+            </ul>
 
-                <div class="card-body p-0">
-                  <ul
-                    id="rooms"
-                    class="list-group list-group-flush text-center"
-                  >
-                    <li class="list-group-item text-muted py-3">
-                      Välj datum ovan och sök för att se lediga rum...
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!--Kunder-->
-            <div class="tab-pane fade" id="kunder">
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-primary text-white py-3">
-                  <h2 class="h5 mb-0 text-center">Skapa ny kund</h2>
-                </div>
-                <div class="card-body p-4">
-                  <div class="mb-3">
-                    <label for="firstName" class="form-label fw-semibold"
-                      >Förnamn</label
-                    >
-                    <input
-                      type="text"
-                      id="firstName"
-                      class="form-control"
-                      placeholder="Förnamn"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="lastName" class="form-label fw-semibold"
-                      >Efternamn</label
-                    >
-                    <input
-                      type="text"
-                      id="lastName"
-                      class="form-control"
-                      placeholder="Efternamn"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="email" class="form-label fw-semibold"
-                      >E-postadress</label
-                    >
-                    <input
-                      type="email"
-                      id="email"
-                      class="form-control"
-                      placeholder="E-postadress"
-                    />
-                  </div>
-                  <div class="mb-4">
-                    <label for="phone" class="form-label fw-semibold"
-                      >Telefonnummer</label
-                    >
-                    <input
-                      type="tel"
-                      id="phone"
-                      class="form-control"
-                      placeholder="Telefonnummer"
-                    />
-                  </div>
-                  <button
-                    onclick="createCustomer()"
-                    class="btn btn-primary w-100 py-2 fw-bold"
-                  >
-                    Skapa kund
-                  </button>
-                  <div
-                    id="customer-message"
-                    class="mt-3 text-center fw-medium"
-                  ></div>
-                </div>
-              </div>
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-danger text-white py-3">
-                  <h2 class="h5 mb-0 text-center fw-bold">Ta bort kund</h2>
-                </div>
-                <div class="card-body p-4">
-                  <div class="mb-4">
-                    <label for="deleteEmail" class="form-label fw-semibold"
-                      >Ange kundens e-postadress för att radera</label
-                    >
-                    <input
-                      type="email"
-                      id="deleteEmail"
-                      class="form-control"
-                      placeholder="namn@test.com"
-                    />
+            <div class="tab-content">
+              <!--Rum-->
+              <div class="tab-pane fade show active" id="rum">
+                <div class="card shadow-sm">
+                  <div class="card-header bg-dark text-white text-center py-3">
+                    <h2 class="h5 mb-0">Sök lediga rum</h2>
                   </div>
 
-                  <button
-                    onclick="deleteCustomer()"
-                    class="btn btn-danger w-100 py-2 fw-bold"
-                  >
-                    Radera kund permanent
-                  </button>
-                  <div
-                    id="delete-message"
-                    class="mt-3 text-center fw-medium"
-                  ></div>
-                </div>
-              </div>
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-warning text-dark py-3">
-                  <h2 class="h5 mb-0 text-center fw-bold">
-                    Uppdatera kunduppgifter
-                  </h2>
-                </div>
-                <div class="card-body p-4">
-                  <div class="mb-3">
-                    <label
-                      for="updateSearchEmail"
-                      class="form-label fw-semibold"
-                      >Sök kund på e-postadress</label
-                    >
-                    <div class="input-group">
-                      <input
-                        type="email"
-                        id="updateSearchEmail"
-                        class="form-control"
-                        placeholder="namn@test.com"
-                      />
-                      <button
-                        class="btn btn-dark"
-                        type="button"
-                        onclick="fetchCustomerForUpdate()"
-                      >
-                        Hämta
-                      </button>
-                    </div>
-                  </div>
-
-                  <hr />
-
-                  <div class="mb-3">
-                    <label for="updateFirstName" class="form-label fw-semibold"
-                      >Förnamn</label
-                    >
-                    <input
-                      type="text"
-                      id="updateFirstName"
-                      class="form-control"
-                      disabled
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="updateLastName" class="form-label fw-semibold"
-                      >Efternamn</label
-                    >
-                    <input
-                      type="text"
-                      id="updateLastName"
-                      class="form-control"
-                      disabled
-                    />
-                  </div>
-                  <div class="mb-4">
-                    <label for="updatePhone" class="form-label fw-semibold"
-                      >Telefonnummer</label
-                    >
-                    <input
-                      type="tel"
-                      id="updatePhone"
-                      class="form-control"
-                      disabled
-                    />
-                  </div>
-
-                  <button
-                    id="updateSubmitBtn"
-                    onclick="updateCustomer()"
-                    class="btn btn-warning w-100 py-2 fw-bold text-dark"
-                    disabled
-                  >
-                    Spara ändringar
-                  </button>
-                  <div
-                    id="update-message"
-                    class="mt-3 text-center fw-medium"
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            <!--Bokningar-->
-            <div class="tab-pane fade" id="bokningar">
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-success text-white py-3">
-                  <h2 class="h5 mb-0 text-center">Skapa bokning</h2>
-                </div>
-                <div class="card-body p-4">
-                  <div class="mb-3">
-                    <label for="customerEmail" class="form-label fw-semibold"
-                      >Kundens e-postadress</label
-                    >
-                    <input
-                      type="email"
-                      id="customerEmail"
-                      class="form-control"
-                      placeholder="namn@test.se"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="roomId" class="form-label fw-semibold"
-                      >Rum</label
-                    >
-                    <select id="roomId" class="form-select">
-                      <option value="">-- Välj rum --</option>
-                    </select>
-                  </div>
-                  <div class="mb-3">
-                    <label for="startDate" class="form-label fw-semibold"
-                      >Startdatum</label
-                    >
-                    <input id="startDate" type="date" class="form-control" />
-                  </div>
-                  <div class="mb-4">
-                    <label for="endDate" class="form-label fw-semibold"
-                      >Slutdatum</label
-                    >
-                    <input id="endDate" type="date" class="form-control" />
-                  </div>
-                  <div class="mb-3 form-check">
-                    <input
-                      type="checkbox"
-                      class="form-check-input"
-                      id="extraBedRequested"
-                    />
-                    <label class="form-check-label" for="extraBedRequested">
-                      Önskar extra säng
-                    </label>
-                  </div>
-                  <button
-                    class="btn btn-success w-100 py-2 fw-bold"
-                    onclick="createBooking()"
-                  >
-                    Skapa bokning
-                  </button>
-                  <div
-                    id="booking-message"
-                    class="mt-3 text-center fw-medium"
-                  ></div>
-                </div>
-              </div>
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-warning text-dark py-3">
-                  <h2 class="h5 mb-0 text-center fw-bold">
-                    Ändra bokningsdatum / Extrasäng
-                  </h2>
-                </div>
-                <div class="card-body p-4">
-                  <div class="mb-4">
-                    <label class="form-label fw-semibold"
-                      >Sök bokning för redigering</label
-                    >
-                    <div class="input-group">
-                      <input
-                        type="number"
-                        id="searchBookingId"
-                        class="form-control"
-                        placeholder="Ange Boknings-ID..."
-                      />
-                      <button
-                        class="btn btn-primary"
-                        type="button"
-                        onclick="findBookingForUpdate()"
-                      >
-                        Hitta bokning
-                      </button>
-                    </div>
-                  </div>
-
-                  <div id="updateSection" style="display: none">
-                    <hr />
-                    <h3>Ändrar bokning: <span id="displayBookingId"></span></h3>
-
-                    <input type="hidden" id="updateBookingId" />
-
-                    <div class="mb-3">
-                      <label for="updateRoomId" class="form-label fw-semibold"
-                        >Nytt Rums-ID</label
-                      >
-                      <input
-                        type="number"
-                        id="updateRoomId"
-                        class="form-control"
-                        placeholder="Valfritt..."
-                      />
-                    </div>
-                    <div class="row mb-3">
-                      <div class="col">
+                  <div class="card-body bg-light border-bottom p-3">
+                    <div class="row g-2">
+                      <div class="col-6">
                         <label
-                          for="updateStartDate"
-                          class="form-label fw-semibold"
+                          for="searchStartDate"
+                          class="form-label small fw-bold"
                           >Incheckning</label
                         >
                         <input
                           type="date"
-                          id="updateStartDate"
+                          id="searchStartDate"
                           class="form-control"
                         />
                       </div>
-                      <div class="col">
+                      <div class="col-6">
                         <label
-                          for="updateEndDate"
-                          class="form-label fw-semibold"
+                          for="searchEndDate"
+                          class="form-label small fw-bold"
                           >Utcheckning</label
                         >
                         <input
                           type="date"
-                          id="updateEndDate"
+                          id="searchEndDate"
                           class="form-control"
                         />
                       </div>
+                      <div class="col-12 mt-2">
+                        <button
+                          onclick="searchAvailableRooms()"
+                          class="btn btn-dark w-100 fw-bold"
+                        >
+                          🔍 Sök tillgängliga rum
+                        </button>
+                      </div>
                     </div>
-                    <div class="form-check form-switch mb-4">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        id="updateExtraBedRequested"
-                      />
-                      <label
-                        class="form-check-label fw-semibold"
-                        for="updateExtraBedRequested"
-                        >Begär extrasäng</label
+                    <div
+                      id="search-message"
+                      class="mt-2 text-center small fw-medium"
+                    ></div>
+                  </div>
+
+                  <div class="card-body p-0">
+                    <ul
+                      id="rooms"
+                      class="list-group list-group-flush text-center"
+                    >
+                      <li class="list-group-item text-muted py-3">
+                        Välj datum ovan och sök för att se lediga rum...
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!--Kunder-->
+              <div class="tab-pane fade" id="kunder">
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-danger text-white py-3">
+                    <h2 class="h5 mb-0 text-center fw-bold">Ta bort kund</h2>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="mb-4">
+                      <label for="deleteEmail" class="form-label fw-semibold"
+                        >Ange kundens e-postadress för att radera</label
                       >
+                      <input
+                        type="email"
+                        id="deleteEmail"
+                        class="form-control"
+                        placeholder="namn@test.com"
+                      />
                     </div>
 
                     <button
-                      onclick="updateBooking()"
-                      class="btn btn-success w-100 py-2 fw-bold"
+                      onclick="deleteCustomer()"
+                      class="btn btn-danger w-100 py-2 fw-bold"
+                    >
+                      Radera kund permanent
+                    </button>
+                    <div
+                      id="delete-message"
+                      class="mt-3 text-center fw-medium"
+                    ></div>
+                  </div>
+                </div>
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-warning text-dark py-3">
+                    <h2 class="h5 mb-0 text-center fw-bold">
+                      Uppdatera kunduppgifter
+                    </h2>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="mb-3">
+                      <label
+                        for="updateSearchEmail"
+                        class="form-label fw-semibold"
+                        >Sök kund på e-postadress</label
+                      >
+                      <div class="input-group">
+                        <input
+                          type="email"
+                          id="updateSearchEmail"
+                          class="form-control"
+                          placeholder="namn@test.com"
+                        />
+                        <button
+                          class="btn btn-dark"
+                          type="button"
+                          onclick="fetchCustomerForUpdate()"
+                        >
+                          Hämta
+                        </button>
+                      </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="mb-3">
+                      <label
+                        for="updateFirstName"
+                        class="form-label fw-semibold"
+                        >Förnamn</label
+                      >
+                      <input
+                        type="text"
+                        id="updateFirstName"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="updateLastName" class="form-label fw-semibold"
+                        >Efternamn</label
+                      >
+                      <input
+                        type="text"
+                        id="updateLastName"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+                    <div class="mb-4">
+                      <label for="updatePhone" class="form-label fw-semibold"
+                        >Telefonnummer</label
+                      >
+                      <input
+                        type="tel"
+                        id="updatePhone"
+                        class="form-control"
+                        disabled
+                      />
+                    </div>
+
+                    <button
+                      id="updateSubmitBtn"
+                      onclick="updateCustomer()"
+                      class="btn btn-warning w-100 py-2 fw-bold text-dark"
+                      disabled
                     >
                       Spara ändringar
                     </button>
                     <div
-                      id="update-booking-message"
+                      id="update-message"
                       class="mt-3 text-center fw-medium"
                     ></div>
                   </div>
                 </div>
               </div>
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-dark text-white py-3">
-                  <h2 class="h5 mb-0 text-center fw-bold">
-                    Sök bokningar via e-post
-                  </h2>
-                </div>
-                <div class="card-body p-4">
-                  <div class="mb-3">
-                    <label
-                      for="searchCustomerBookingsEmail"
-                      class="form-label fw-semibold"
-                      >Ange kundens e-postadress</label
-                    >
-                    <div class="input-group">
+
+              <!--Bokningar-->
+              <div class="tab-pane fade" id="bokningar">
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-success text-white py-3">
+                    <h2 class="h5 mb-0 text-center">Skapa bokning</h2>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="mb-3">
+                      <label for="customerEmail" class="form-label fw-semibold"
+                        >Kundens e-postadress</label
+                      >
                       <input
                         type="email"
-                        id="searchCustomerBookingsEmail"
+                        id="customerEmail"
                         class="form-control"
-                        placeholder="namn@test.com"
+                        placeholder="namn@test.se"
                       />
-                      <button
-                        class="btn btn-primary"
-                        type="button"
-                        onclick="findBookingsByEmail()"
+                    </div>
+                    <div class="mb-3">
+                      <label for="roomId" class="form-label fw-semibold"
+                        >Rum</label
                       >
-                        Sök bokningar
+                      <select id="roomId" class="form-select">
+                        <option value="">-- Välj rum --</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label for="startDate" class="form-label fw-semibold"
+                        >Startdatum</label
+                      >
+                      <input id="startDate" type="date" class="form-control" />
+                    </div>
+                    <div class="mb-4">
+                      <label for="endDate" class="form-label fw-semibold"
+                        >Slutdatum</label
+                      >
+                      <input id="endDate" type="date" class="form-control" />
+                    </div>
+                    <div class="mb-3 form-check">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="extraBedRequested"
+                      />
+                      <label class="form-check-label" for="extraBedRequested">
+                        Önskar extra säng
+                      </label>
+                    </div>
+                    <button
+                      class="btn btn-success w-100 py-2 fw-bold"
+                      onclick="createBooking()"
+                    >
+                      Skapa bokning
+                    </button>
+                    <div
+                      id="booking-message"
+                      class="mt-3 text-center fw-medium"
+                    ></div>
+                  </div>
+                </div>
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-warning text-dark py-3">
+                    <h2 class="h5 mb-0 text-center fw-bold">
+                      Ändra bokningsdatum / Extrasäng
+                    </h2>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="mb-4">
+                      <label class="form-label fw-semibold"
+                        >Sök bokning för redigering</label
+                      >
+                      <div class="input-group">
+                        <input
+                          type="number"
+                          id="searchBookingId"
+                          class="form-control"
+                          placeholder="Ange Boknings-ID..."
+                        />
+                        <button
+                          class="btn btn-primary"
+                          type="button"
+                          onclick="findBookingForUpdate()"
+                        >
+                          Hitta bokning
+                        </button>
+                      </div>
+                    </div>
+
+                    <div id="updateSection" style="display: none">
+                      <hr />
+                      <h3>
+                        Ändrar bokning: <span id="displayBookingId"></span>
+                      </h3>
+
+                      <input type="hidden" id="updateBookingId" />
+
+                      <div class="mb-3">
+                        <label for="updateRoomId" class="form-label fw-semibold"
+                          >Nytt Rums-ID</label
+                        >
+                        <input
+                          type="number"
+                          id="updateRoomId"
+                          class="form-control"
+                          placeholder="Valfritt..."
+                        />
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col">
+                          <label
+                            for="updateStartDate"
+                            class="form-label fw-semibold"
+                            >Incheckning</label
+                          >
+                          <input
+                            type="date"
+                            id="updateStartDate"
+                            class="form-control"
+                          />
+                        </div>
+                        <div class="col">
+                          <label
+                            for="updateEndDate"
+                            class="form-label fw-semibold"
+                            >Utcheckning</label
+                          >
+                          <input
+                            type="date"
+                            id="updateEndDate"
+                            class="form-control"
+                          />
+                        </div>
+                      </div>
+                      <div class="form-check form-switch mb-4">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="updateExtraBedRequested"
+                        />
+                        <label
+                          class="form-check-label fw-semibold"
+                          for="updateExtraBedRequested"
+                          >Begär extrasäng</label
+                        >
+                      </div>
+
+                      <button
+                        onclick="updateBooking()"
+                        class="btn btn-success w-100 py-2 fw-bold"
+                      >
+                        Spara ändringar
                       </button>
+                      <div
+                        id="update-booking-message"
+                        class="mt-3 text-center fw-medium"
+                      ></div>
                     </div>
                   </div>
-                  <div
-                    id="email-search-message"
-                    class="mt-2 text-center small fw-medium"
-                  ></div>
+                </div>
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-dark text-white py-3">
+                    <h2 class="h5 mb-0 text-center fw-bold">
+                      Sök bokningar via e-post
+                    </h2>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="mb-3">
+                      <label
+                        for="searchCustomerBookingsEmail"
+                        class="form-label fw-semibold"
+                        >Ange kundens e-postadress</label
+                      >
+                      <div class="input-group">
+                        <input
+                          type="email"
+                          id="searchCustomerBookingsEmail"
+                          class="form-control"
+                          placeholder="namn@test.com"
+                        />
+                        <button
+                          class="btn btn-primary"
+                          type="button"
+                          onclick="findBookingsByEmail()"
+                        >
+                          Sök bokningar
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      id="email-search-message"
+                      class="mt-2 text-center small fw-medium"
+                    ></div>
 
-                  <ul id="customerBookingsList" class="list-group mt-3"></ul>
+                    <ul id="customerBookingsList" class="list-group mt-3"></ul>
+                  </div>
+                </div>
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-danger text-white py-3">
+                    <h2 class="h5 mb-0 text-center fw-bold">
+                      Avboka / Ta bort bokning
+                    </h2>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="mb-4">
+                      <label
+                        for="deleteBookingId"
+                        class="form-label fw-semibold"
+                        >Ange Boknings-ID</label
+                      >
+                      <input
+                        type="number"
+                        id="deleteBookingId"
+                        class="form-control"
+                        placeholder="t.ex. 102"
+                      />
+                    </div>
+
+                    <button
+                      onclick="deleteBooking()"
+                      class="btn btn-danger w-100 py-2 fw-bold"
+                    >
+                      Avboka reservation permanent
+                    </button>
+                    <div
+                      id="delete-booking-message"
+                      class="mt-3 text-center fw-medium"
+                    ></div>
+                  </div>
                 </div>
               </div>
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-danger text-white py-3">
-                  <h2 class="h5 mb-0 text-center fw-bold">
-                    Avboka / Ta bort bokning
-                  </h2>
-                </div>
-                <div class="card-body p-4">
-                  <div class="mb-4">
-                    <label for="deleteBookingId" class="form-label fw-semibold"
-                      >Ange Boknings-ID</label
-                    >
-                    <input
-                      type="number"
-                      id="deleteBookingId"
-                      class="form-control"
-                      placeholder="t.ex. 102"
-                    />
-                  </div>
 
-                  <button
-                    onclick="deleteBooking()"
-                    class="btn btn-danger w-100 py-2 fw-bold"
-                  >
-                    Avboka reservation permanent
-                  </button>
-                  <div
-                    id="delete-booking-message"
-                    class="mt-3 text-center fw-medium"
-                  ></div>
-                </div>
-              </div>
-            </div>
+              <!--Recensioner-->
+              <div class="tab-pane fade" id="recensioner">
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-info text-white py-3">
+                    <h2 class="h5 mb-0 text-center">Lämna en recension</h2>
+                  </div>
+                  <div class="card-body p-4">
+                    <div class="mb-3">
+                      <label for="reviewRoomId" class="form-label fw-semibold"
+                        >Rum</label
+                      >
+                      <select
+                        id="reviewRoomId"
+                        class="form-select"
+                        onchange="loadReviewsForRoom(this.value)"
+                      >
+                        <option value="">-- Välj rum --</option>
+                      </select>
+                    </div>
 
-            <!--Recensioner-->
-            <div class="tab-pane fade" id="recensioner">
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-info text-white py-3">
-                  <h2 class="h5 mb-0 text-center">Lämna en recension</h2>
+                    <div id="reviewFormFields">
+                      <div class="mb-3">
+                        <label for="reviewerName" class="form-label fw-semibold"
+                          >Ditt namn (valfritt)</label
+                        >
+                        <input
+                          type="text"
+                          id="reviewerName"
+                          class="form-control"
+                          placeholder="Anonym"
+                        />
+                      </div>
+                      <div class="mb-3">
+                        <label for="reviewRating" class="form-label fw-semibold"
+                          >Betyg</label
+                        >
+                        <select id="reviewRating" class="form-select">
+                          <option value="">-- Välj betyg --</option>
+                          <option value="1">1 ⭐</option>
+                          <option value="2">2 ⭐⭐</option>
+                          <option value="3">3 ⭐⭐⭐</option>
+                          <option value="4">4 ⭐⭐⭐⭐</option>
+                          <option value="5">5 ⭐⭐⭐⭐⭐</option>
+                        </select>
+                      </div>
+                      <div class="mb-4">
+                        <label
+                          for="reviewComment"
+                          class="form-label fw-semibold"
+                          >Din recension</label
+                        >
+                        <textarea
+                          id="reviewComment"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Skriv din recension..."
+                        ></textarea>
+                      </div>
+                      <button
+                        onclick="submitReview()"
+                        class="btn btn-info w-100 py-2 fw-bold"
+                      >
+                        Skicka recension
+                      </button>
+                      <div
+                        id="review-message"
+                        class="mt-3 text-center fw-medium"
+                      ></div>
+                    </div>
+
+                    <div
+                      id="reviewLoginPrompt"
+                      class="text-center text-muted py-3"
+                      style="display: none"
+                    >
+                      🔒 Du måste vara inloggad för att skriva en recension.
+                    </div>
+                  </div>
                 </div>
-                <div class="card-body p-4">
-                  <div class="mb-3">
-                    <label for="reviewRoomId" class="form-label fw-semibold"
-                      >Rum</label
-                    >
-                    <select
-                      id="reviewRoomId"
-                      class="form-select"
-                      onchange="loadReviewsForRoom(this.value)"
-                    >
-                      <option value="">-- Välj rum --</option>
-                    </select>
+                <div class="card shadow-sm mb-5">
+                  <div class="card-header bg-dark text-white py-3">
+                    <h2 class="h5 mb-0 text-center">
+                      Recensioner för valt rum
+                    </h2>
                   </div>
-                  <div class="mb-3">
-                    <label for="reviewerName" class="form-label fw-semibold"
-                      >Ditt namn (valfritt)</label
-                    >
-                    <input
-                      type="text"
-                      id="reviewerName"
-                      class="form-control"
-                      placeholder="Anonym"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="reviewRating" class="form-label fw-semibold"
-                      >Betyg</label
-                    >
-                    <select id="reviewRating" class="form-select">
-                      <option value="">-- Välj betyg --</option>
-                      <option value="1">1 ⭐</option>
-                      <option value="2">2 ⭐⭐</option>
-                      <option value="3">3 ⭐⭐⭐</option>
-                      <option value="4">4 ⭐⭐⭐⭐</option>
-                      <option value="5">5 ⭐⭐⭐⭐⭐</option>
-                    </select>
-                  </div>
-                  <div class="mb-4">
-                    <label for="reviewComment" class="form-label fw-semibold"
-                      >Din recension</label
-                    >
-                    <textarea
-                      id="reviewComment"
-                      class="form-control"
-                      rows="3"
-                      placeholder="Skriv din recension..."
-                    ></textarea>
-                  </div>
-                  <button
-                    onclick="submitReview()"
-                    class="btn btn-info w-100 py-2 fw-bold"
-                  >
-                    Skicka recension
-                  </button>
-                  <div
-                    id="review-message"
-                    class="mt-3 text-center fw-medium"
-                  ></div>
-                </div>
-              </div>
-              <div class="card shadow-sm mb-5">
-                <div class="card-header bg-dark text-white py-3">
-                  <h2 class="h5 mb-0 text-center">Recensioner för valt rum</h2>
-                </div>
-                <div class="card-body p-4">
-                  <div id="reviewsList" class="text-center text-muted">
-                    Välj ett rum ovan för att se recensioner...
+                  <div class="card-body p-4">
+                    <div id="reviewsList" class="text-center text-muted">
+                      Välj ett rum ovan för att se recensioner...
+                    </div>
                   </div>
                 </div>
               </div>
@@ -837,6 +828,136 @@
         </div>
       </div>
     </div>
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Logga in</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label for="loginUsername" class="form-label small fw-bold"
+                >Användarnamn</label
+              >
+              <input type="text" id="loginUsername" class="form-control" />
+            </div>
+            <div class="mb-4">
+              <label for="loginPassword" class="form-label small fw-bold"
+                >Lösenord</label
+              >
+              <input type="password" id="loginPassword" class="form-control" />
+            </div>
+            <button
+              onclick="
+                loginUser(
+                  document.getElementById('loginUsername').value,
+                  document.getElementById('loginPassword').value,
+                )
+              "
+              class="btn btn-primary w-100 py-2 fw-bold"
+            >
+              Logga in
+            </button>
+            <div id="login-message" class="mt-3 text-center fw-medium"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Skapa konto</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label for="firstName" class="form-label fw-semibold"
+                >Förnamn</label
+              >
+              <input
+                type="text"
+                id="firstName"
+                class="form-control"
+                placeholder="Förnamn"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="lastName" class="form-label fw-semibold"
+                >Efternamn</label
+              >
+              <input
+                type="text"
+                id="lastName"
+                class="form-control"
+                placeholder="Efternamn"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label fw-semibold"
+                >E-postadress</label
+              >
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                placeholder="E-postadress"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="phone" class="form-label fw-semibold"
+                >Telefonnummer</label
+              >
+              <input
+                type="tel"
+                id="phone"
+                class="form-control"
+                placeholder="Telefonnummer"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="newUsername" class="form-label fw-semibold"
+                >Användarnamn</label
+              >
+              <input type="text" id="newUsername" class="form-control" />
+            </div>
+            <div class="mb-4">
+              <label for="newPassword" class="form-label fw-semibold"
+                >Lösenord</label
+              >
+              <input type="password" id="newPassword" class="form-control" />
+            </div>
+            <div class="mb-4">
+              <label for="confirmPassword" class="form-label fw-semibold"
+                >Bekräfta lösenord</label
+              >
+              <input
+                type="password"
+                id="confirmPassword"
+                class="form-control"
+              />
+            </div>
+            <button
+              onclick="createCustomer()"
+              class="btn btn-primary w-100 py-2 fw-bold"
+            >
+              Skapa kund
+            </button>
+            <div id="customer-message" class="mt-3 text-center fw-medium"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
   </body>
