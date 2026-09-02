@@ -18,6 +18,8 @@ async function loginUser(username, password) {
       sessionStorage.setItem("jwt", token);
       showLoginMessage("Du är nu inloggad", false);
       updateAuthUI();
+      resumePendingBookingIfAny();
+      showSearchMessage("", false);
 
       const modalEl = document.getElementById("loginModal");
       const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -207,11 +209,19 @@ async function createCustomer() {
       document.getElementById("phone").value = "";
       document.getElementById("newUsername").value = "";
       document.getElementById("newPassword").value = "";
-      document.getElementById("confirmPassword").value = ""; 
-      
+      document.getElementById("confirmPassword").value = "";
+
       const modalEl = document.getElementById("registerModal");
       const modalInstance = bootstrap.Modal.getInstance(modalEl);
       if (modalInstance) modalInstance.hide();
+
+      if (sessionStorage.getItem("pendingRoom")) {
+        const pendingRoom = JSON.parse(sessionStorage.getItem("pendingRoom"));
+        pendingRoom.customerEmail = customer.email;
+        sessionStorage.setItem("pendingRoom", JSON.stringify(pendingRoom));
+      }
+
+      await loginUser(customer.username, customer.password);
 
       return;
     }
@@ -221,6 +231,36 @@ async function createCustomer() {
     console.error("Nätverksfel:", error);
     showCustomerMessage("Kunde inte ansluta till servern. Försök igen senare.");
   }
+}
+
+function resumePendingBookingIfAny() {
+  const pendingRoomData = sessionStorage.getItem("pendingRoom");
+
+  if (!pendingRoomData) {
+    return;
+  }
+
+  const { roomId, startDate, endDate, customerEmail } =
+    JSON.parse(pendingRoomData);
+
+  sessionStorage.removeItem("pendingRoom");
+
+  document.getElementById("roomId").value = roomId;
+  document.getElementById("startDate").value = startDate;
+  document.getElementById("endDate").value = endDate;
+
+  if (customerEmail) {
+    document.getElementById("customerEmail").value = customerEmail;
+  }
+
+  showBookingMessage(
+    "Rum och datum har fyllts i! Skriv in kundens e-post och klicka på 'Skapa bokning'.",
+    false,
+  );
+
+  const bokningarTabTrigger = document.querySelector('a[href="#bokningar"]');
+  const tab = new bootstrap.Tab(bokningarTabTrigger);
+  tab.show();
 }
 
 async function searchAvailableRooms() {
@@ -283,6 +323,24 @@ async function searchAvailableRooms() {
 }
 
 function selectRoomForBooking(roomId, startDate, endDate) {
+  const loggedIn = sessionStorage.getItem("jwt") !== null;
+
+  if (!loggedIn) {
+    sessionStorage.setItem(
+      "pendingRoom",
+      JSON.stringify({ roomId, startDate, endDate }),
+    );
+
+    showSearchMessage(
+      `Du måste vara inloggad för att boka.
+      <br>
+      <button class="btn btn-sm btn-primary mt-2 me-2" onclick="openLoginModal()">Logga in</button>
+      <button class="btn btn-sm btn-outline-primary mt-2" onclick="openRegisterModal()">Skapa konto</button>`,
+    );
+
+    return;
+  }
+
   const roomSelect = document.getElementById("roomId");
   roomSelect.value = roomId;
 
@@ -298,6 +356,16 @@ function selectRoomForBooking(roomId, startDate, endDate) {
   const bokningarTabTrigger = document.querySelector('a[href="#bokningar"]');
   const tab = new bootstrap.Tab(bokningarTabTrigger);
   tab.show();
+}
+
+function openLoginModal() {
+  const modal = new bootstrap.Modal(document.getElementById("loginModal"));
+  modal.show();
+}
+
+function openRegisterModal() {
+  const modal = new bootstrap.Modal(document.getElementById("registerModal"));
+  modal.show();
 }
 
 async function createBooking() {
@@ -361,6 +429,8 @@ async function createBooking() {
       );
       myModal.show();
 
+      showBookingMessage("", false);
+
       document.getElementById("customerEmail").value = "";
       document.getElementById("startDate").value = "";
       document.getElementById("endDate").value = "";
@@ -376,7 +446,7 @@ async function createBooking() {
 
     if (response.status === 404) {
       showBookingMessage(
-        `Fel: ${data.message} Skapa kunden under fliken Kunder först.`,
+        `Fel: ${data.message} Kontrollera att du skrivit samma e-post som du registrerade dig med.`,
       );
     } else {
       showBookingMessage(`Fel: ${data.message || "Kunde inte skapa bokning."}`);
@@ -996,4 +1066,16 @@ document.addEventListener("DOMContentLoaded", () => {
   updateAuthUI();
   loadRoomsForBooking();
   loadRoomsForReview();
+
+  document
+    .getElementById("loginModal")
+    .addEventListener("show.bs.modal", () => {
+      showLoginMessage("", false);
+    });
+
+  document
+    .getElementById("registerModal")
+    .addEventListener("show.bs.modal", () => {
+      showCustomerMessage("", false);
+    });
 });
