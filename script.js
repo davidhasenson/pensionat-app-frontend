@@ -1,4 +1,4 @@
-const BOOKING_API = "http://localhost:8080/api";
+const BOOKING_API = "http://localhost:8083/api";
 const CUSTOMER_API = "http://localhost:8081/api";
 const REVIEW_API = "http://localhost:8082/api";
 const AUTH_URL = "http://localhost:8081";
