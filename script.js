@@ -770,6 +770,7 @@ async function executeDeleteCustomer() {
       );
       document.getElementById("deleteEmail").value = "";
       emailToDelete = "";
+      logout();
       return;
     }
 
