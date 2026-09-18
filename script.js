@@ -1,27 +1,7 @@
-/*const BOOKING_API = "http://localhost:8083/api";
+const BOOKING_API = "http://localhost:8083/api";
 const CUSTOMER_API = "http://localhost:8081/api";
 const REVIEW_API = "http://localhost:8082/api";
 const AUTH_URL = "http://localhost:8081";
-*/
-
-// Dynamisk miljö- och URL-konfiguration för lokalt vs Railway
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-const BOOKING_API = isLocal
-    ? "http://localhost:8083/api"
-    : "https://pensionat-app-production.up.railway.app/api"; // Byt ut mot din riktiga booking-url när den har en domän
-
-const CUSTOMER_API = isLocal
-    ? "http://localhost:8081/api"
-    : "https://customer-service-production-a00d.up.railway.app/api";
-
-const REVIEW_API = isLocal
-    ? "http://localhost:8082/api"
-    : "https://review-service-production-yyyy.up.railway.app/api"; // Byt ut mot din riktiga review-url när den har en domän
-
-const AUTH_URL = isLocal
-    ? "http://localhost:8081"
-    : "https://customer-service-production-a00d.up.railway.app";
 
 async function loginUser(username, password) {
   const body = { username: username, password: password };
